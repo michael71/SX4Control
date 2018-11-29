@@ -11,7 +11,7 @@ import android.widget.Button
 import android.widget.TextView
 
 
-import de.blankedv.sx4control.MainActivity.Companion.connString
+import de.blankedv.sx4control.MainApplication.Companion.connString
 
 
 class AboutActivity : Activity() {
@@ -28,15 +28,15 @@ class AboutActivity : Activity() {
         versTv = findViewById<View>(R.id.version) as TextView
         connTo = findViewById<View>(R.id.connected_to) as TextView
 
-        var version = -1
+
         var vName = ""
 
         val pInfo: PackageInfo
         try {
             pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
-            version = pInfo.versionCode
+
             vName = pInfo.versionName
-            vinfo = "Version: $vName  ($version)"
+            vinfo = "Version: $vName "
 
         } catch (e: NameNotFoundException) {
             e.printStackTrace()
@@ -54,22 +54,6 @@ class AboutActivity : Activity() {
 
         cancel!!.setOnClickListener { finish() }
 
-        //		upload = (Button)findViewById(R.id.upload);
-
-        //		if ((DEBUG) && (debugFileEnabled) ){
-        //			upload.setVisibility(View.VISIBLE);
-        //
-        //			upload.setOnClickListener(new View.OnClickListener() {
-        //				public void onClick(View v) {
-        //					app.uploadDebugFile();
-        //				}
-        //
-        //			});
-        //		}
-        //		else  {
-        //			// don't show upload button when there is no debug log file.
-        //			upload.setVisibility(View.GONE);
-        //		}
     }
 
 }

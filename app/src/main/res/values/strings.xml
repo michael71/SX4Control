@@ -16,4 +16,5 @@
     <string name="action_reconnect" translatable="false">Reconnect to Server</string>
     <string name="title_about_info" translatable="false">About / Info</string>
     <string name="sxnet_server_settings" translatable="false">SXnet Server Settings</string>
+    <string name="stop_loco"  translatable="false">STOP</string>
 </resources>
