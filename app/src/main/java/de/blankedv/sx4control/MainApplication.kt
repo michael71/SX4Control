@@ -19,6 +19,7 @@ class MainApplication : Application() {
     var timeOfLastReceivedMessage = 0L
     var client: SXnetClientThread? = null
 
+
     //@SuppressLint("HandlerLeak")
     @SuppressLint("HandlerLeak")
     override fun onCreate() {
@@ -33,12 +34,10 @@ class MainApplication : Application() {
         Log.d(TAG, "MainApplication - androidDeviceID=$myAndroidDeviceId")
         // scaling, zoom prefs are loaded from LanbahnPanelActivity
 
-        prefs = PreferenceManager
-                .getDefaultSharedPreferences(this)
 
         // handler for receiving sxnet/loconet messages
         // this must be done in the "Application" (not activity) to keep track of changes
-        // during other activitiesext.anko_version = '0.10.4'
+        // during other activities
 
         handler = object : Handler() {
             override fun handleMessage(msg: Message) {
@@ -49,10 +48,11 @@ class MainApplication : Application() {
                 when (what) {
                     TYPE_POWER_MSG -> {
                         globalPower = (data != 0)
+                        Log.d(TAG, "rec gPower=$data")
                     }
                     TYPE_CONNECTION_MSG -> {
                         cmdStationConnected = (data != 0)
-
+                        Log.d(TAG, "rec cmdStatConn=$data")
                     }
 
                     TYPE_SX_MSG -> {
@@ -60,6 +60,7 @@ class MainApplication : Application() {
                         if (selectedLoco?.adr == chan) {
                             selectedLoco?.updateLocoFromSX(data)
                         }
+                        Log.d(TAG, "rec sxMsg a=$chan d=$data")
                     }
 
                     /*  TYPE_SHUTDOWN_MSG -> {
@@ -87,6 +88,8 @@ class MainApplication : Application() {
 
     fun saveCurrentLoco() {
 
+        val prefs = PreferenceManager
+            .getDefaultSharedPreferences(this)
         val editor = prefs.edit()
         Log.d(TAG, "saveCurrentLoco")
         // generic
@@ -94,9 +97,8 @@ class MainApplication : Application() {
 
             val adr = selectedLoco?.adr ?: 3
             editor.putInt(KEY_LOCO_ADDR, adr)  // last used loco address
-
-
-        // Commit the edits!ext.anko_version = '0.10.4'
+        val data = selectedLoco?.getSXData() ?: 0
+        editor.putInt(KEY_LOCO_DATA, data)  // last used loco address
 
         editor.apply()
     }
@@ -146,7 +148,8 @@ class MainApplication : Application() {
 
         lateinit var handler: Handler // used for communication from RRConnection Thread to UI (application)
         var connString = ""
-        lateinit var prefs : SharedPreferences
+
+        var pauseTimer = false
         var globalPower = false
         var cmdStationConnected = false
         var sxData = IntArray(SXMAX+1)

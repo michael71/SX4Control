@@ -8,7 +8,7 @@
               android:orientation="vertical"
               android:padding="10dip">
 
-    <de.blankedv.sx4control.utils.SpeedBarView
+    <de.blankedv.sx4control.SpeedBarView
             android:id="@+id/speedbar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -68,7 +68,7 @@
                   android:background="@android:color/background_dark"
                   android:orientation="horizontal">
 
-        <de.blankedv.sx4throttle.utils.FunctionButton
+        <de.blankedv.sx4control.FunctionButton
                 android:id="@+id/f0"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
@@ -76,7 +76,7 @@
                 android:text="F0"
                 android:textSize="22sp" />
 
-        <de.blankedv.sx4throttle.utils.FunctionButton
+        <de.blankedv.sx4control.FunctionButton
                 android:id="@+id/f1"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
@@ -105,13 +105,13 @@
                 android:src="@drawable/right2"
                 android:textSize="22sp" />
 
-        <de.blankedv.sx4throttle.utils.RotaryKnobView
+        <de.blankedv.sx4control.RotaryKnobView
                 android:id="@+id/jogView"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_weight="50" />
 
-        <de.blankedv.sx4throttle.utils.PowerButton
+        <de.blankedv.sx4control.PowerButton
                 android:id="@+id/powerBtn"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"

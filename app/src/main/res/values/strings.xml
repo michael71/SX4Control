@@ -17,4 +17,5 @@
     <string name="title_about_info" translatable="false">About / Info</string>
     <string name="sxnet_server_settings" translatable="false">SXnet Server Settings</string>
     <string name="stop_loco"  translatable="false">STOP</string>
+    <string name="enable_power_control"  translatable="false">Enable Global Power On/Off Control</string>
 </resources>

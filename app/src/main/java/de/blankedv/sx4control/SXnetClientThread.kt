@@ -93,7 +93,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                 val m = Message.obtain()
                 m.what = TYPE_ERROR_MSG
                 m.obj = "disconnected from SX4 server"
-                handler.sendMessage(m)  // send SX data to UI Thread via Message
+                handler!!.sendMessage(m)  // send SX data to UI Thread via Message
                 lastReceived = System.currentTimeMillis()  // send this msg only every 10 secs
             }
         }
@@ -141,7 +141,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
             val m = Message.obtain()
             m.what = TYPE_ERROR_MSG
             m.obj = e.message
-            handler.sendMessage(m)  // send SX data to UI Thread via Message
+            handler!!.sendMessage(m)  // send SX data to UI Thread via Message
         }
 
     }
@@ -199,10 +199,8 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
         val adr: Int
         val data: Int
 
-        if (msg.length != 0 &&
-            !msg.contains("ERROR") &&
-            !msg.contains("OK")
-        ) { // message should contain valid data
+        if (msg.isNotEmpty() &&  !msg.contains("OK") ) { // message should contain valid data
+
             info = msg.split("\\s+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()  // one or more whitespace
 
             if (info.size >= 2 && info[0] == "XPOWER") {
@@ -212,7 +210,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                     m.what = TYPE_POWER_MSG
                     m.arg1 = 0
                     m.arg2 = data
-                    handler.sendMessage(m)  // send SX data to UI Thread via Message
+                    handler!!.sendMessage(m)  // send SX data to UI Thread via Message
                 }
             } else if (info.size >= 3 && info[0] == "X") {
                 adr = getChannelFromString(info[1])
@@ -222,7 +220,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                     m.what = TYPE_SX_MSG
                     m.arg1 = adr
                     m.arg2 = data
-                    handler.sendMessage(m)  // send SX data to UI Thread via Message
+                    handler!!.sendMessage(m)  // send SX data to UI Thread via Message
                 }
             }
         }

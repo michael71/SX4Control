@@ -23,6 +23,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 import android.widget.Button;
 
@@ -30,7 +31,7 @@ import android.widget.Button;
  * adds an "LED" indicator or an Image with an ON and and OFF state
  * to the standard button
  */
-public class FunctionButton extends Button {
+public class FunctionButton extends AppCompatButton {
 
     public boolean active = true;
     public Bitmap im_on = null;
