@@ -13,13 +13,13 @@ const val INVALID_INT = -1
 
 const val KEY_IP = "ipPref"
 const val KEY_PORT = "portPref"
-const val KEY_LOCO_ADDR = "lastLocoAddr"
-const val KEY_LOCO_DATA = "lastLocoData"
+
 const val KEY_ALLOW_POWER_CONTROL = "enablePowerControlPref"
 
 const val SXNET_PORT = 4104
 const val SXNET_START_IP = "192.168.178.29"
 
+const val KEY_LOCO_ADDR = "lastLocoAddr"
 const val DEFAULT_LOCO = 25
 
 const val FNAME_FROM_SERVER = "from_server.xml"

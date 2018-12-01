@@ -44,7 +44,7 @@ import de.blankedv.sx4control.MainApplication.*
 
 class ThrottleKnobActivity : Activity() {
 /*
-    // selectedLoco is imported from SX4ThrottleApplication
+    // selLocoAddr is imported from SX4ThrottleApplication
     //      (therefor available during whole app lifetime)
 
     // TODO MDPI: Horn, Lautspr, kuppl, bell zu gross - Lokname zu gross
@@ -139,17 +139,17 @@ class ThrottleKnobActivity : Activity() {
         jogView.setKnobListener(object : RotaryKnobView.RotaryKnobListener {
             override fun onKnobChanged(delta: Float, angle: Float) {
                 speedbar!!.diffSpeed(delta)
-                selectedLoco.set_speed(speedbar!!.intSpeed)
+                selLocoAddr.set_speed(speedbar!!.intSpeed)
                 sendLocoMessageToLanbahn()
             }
         })
 
         change_dir!!.setOnClickListener {
             // Perform action on click: toggle direction
-            selectedLoco.stop()
+            selLocoAddr.stop()
             speedbar!!.speed = 0f
-            selectedLoco.toggle_dir()
-            if (selectedLoco.getDir() === BACKWARD) {
+            selLocoAddr.toggle_dir()
+            if (selLocoAddr.getDir() === BACKWARD) {
                 change_dir!!.setImageResource(R.drawable.left2)
             } else {
                 change_dir!!.setImageResource(R.drawable.right2)
@@ -172,7 +172,7 @@ class ThrottleKnobActivity : Activity() {
 
         loco_stop.setOnClickListener {
             // Perform action on click: stop
-            selectedLoco.stop()
+            selLocoAddr.stop()
             sendLocoMessageToLanbahn()
             speedbar!!.intSpeed = 0
         }
@@ -192,7 +192,7 @@ class ThrottleKnobActivity : Activity() {
         super.onPause()
         Log.i(TAG, "ThrottleActivcity - onPause")
         // store current loco data including speed etc
-        app!!.saveLocoToPreferences(selectedLoco)
+        app!!.saveLocoToPreferences(selLocoAddr)
         super.onPause()
         if (DEBUG)
             Log.d(TAG, "onPause - MainActivity")
@@ -210,26 +210,26 @@ class ThrottleKnobActivity : Activity() {
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
 
-        if (selectedLoco == null) {
-            selectedLoco = app!!.loadLastLocoFromPreferences()
+        if (selLocoAddr == null) {
+            selLocoAddr = app!!.loadLastLocoFromPreferences()
             if (DEBUG)
-                Log.d(TAG, "loading lastLocoFromPreferences - was adr=" + selectedLoco.getAdr())
+                Log.d(TAG, "loading lastLocoFromPreferences - was adr=" + selLocoAddr.getAdr())
         } else {
-            val lstate = prefs.getString(KEY_CMD + selectedLoco.getAdr(), "")
-            selectedLoco.setFromString(lstate)
-            if (DEBUG) Log.d(TAG, "loading state for adr=" + selectedLoco.getAdr())
+            val lstate = prefs.getString(KEY_CMD + selLocoAddr.getAdr(), "")
+            selLocoAddr.setFromString(lstate)
+            if (DEBUG) Log.d(TAG, "loading state for adr=" + selLocoAddr.getAdr())
         }
 
-        loco_text!!.text = "A: " + selectedLoco.getAdr()
-        loco_icon!!.setImageBitmap(selectedLoco.getIcon())
-        speedbar!!.setTitle(selectedLoco.getName())
-        if (selectedLoco.getDir() === BACKWARD) {
+        loco_text!!.text = "A: " + selLocoAddr.getAdr()
+        loco_icon!!.setImageBitmap(selLocoAddr.getIcon())
+        speedbar!!.setTitle(selLocoAddr.getName())
+        if (selLocoAddr.getDir() === BACKWARD) {
             change_dir!!.setImageResource(R.drawable.left2)
         } else {
             change_dir!!.setImageResource(R.drawable.right2)
         }
 
-        speedbar!!.intSpeed = selectedLoco.get_speed()
+        speedbar!!.intSpeed = selLocoAddr.get_speed()
         sendLocoMessageToLanbahn()
         init_function_buttons()
 
@@ -279,17 +279,17 @@ class ThrottleKnobActivity : Activity() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
 
         for (i in 0 until MAX_FUNC) {
-            if (selectedLoco.getNfunc() > i) {
-                if (prefs.getBoolean(KEY_INDIV_FUNC_KEYS, false) && selectedLoco.FuncIconIsImage(i)) {
-                    f[i].im_on = BitmapFactory.decodeResource(res, selectedLoco.getFuncIconOn(i))
-                    f[i].im_off = BitmapFactory.decodeResource(res, selectedLoco.getFuncIconOff(i))
+            if (selLocoAddr.getNfunc() > i) {
+                if (prefs.getBoolean(KEY_INDIV_FUNC_KEYS, false) && selLocoAddr.FuncIconIsImage(i)) {
+                    f[i].im_on = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOn(i))
+                    f[i].im_off = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOff(i))
                     f[i].setText("")
                 } else {
                     f[i].setText("F$i")
                     f[i].im_on = null
                     f[i].im_off = null
                 }
-                f[i].setON(selectedLoco.func_on(i))
+                f[i].setON(selLocoAddr.func_on(i))
                 f[i].activate()
                 f[i].setClickable(true)
             } else {
@@ -351,11 +351,11 @@ class ThrottleKnobActivity : Activity() {
     }
 
     private fun sendLocoMessageToLanbahn() {
-        if (selectedLoco == null) {
-            Log.e(TAG, "selectedLoco = null")
+        if (selLocoAddr == null) {
+            Log.e(TAG, "selLocoAddr = null")
         }
         if (checkWifi()) {
-            sendQ.offer(selectedLoco.loco_cmd())
+            sendQ.offer(selLocoAddr.loco_cmd())
         }
     }
 

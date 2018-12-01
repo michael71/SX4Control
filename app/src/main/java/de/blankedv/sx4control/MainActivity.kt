@@ -14,22 +14,27 @@ import android.view.View
 import android.widget.*
 import de.blankedv.sx4control.MainApplication.Companion.globalPower
 import de.blankedv.sx4control.MainApplication.Companion.pauseTimer
-import de.blankedv.sx4control.MainApplication.Companion.selectedLoco
+import de.blankedv.sx4control.MainApplication.Companion.selLocoAddr
 import de.blankedv.sx4control.MainApplication.Companion.sendQ
+import de.blankedv.sx4control.MainApplication.Companion.sxData
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     lateinit var builder: AlertDialog.Builder
     // TODO MDPI: Horn, Lautspr, kuppl, bell zu gross - Lokname zu gross
     // TODO XHPI: ---??
     // TODO TVDPI ??
     // TODO HDPI ??
-    private var loco_text: TextView? = null
-    private var loco_icon: ImageView? = null
-    private var powerBtn: PowerButton? = null
-    private val f = arrayOfNulls<FunctionButton>(2)
-    private var change_dir: ImageButton? = null
-    private var speedbar: SpeedBarView? = null
+    lateinit var locoAddr: TextView
+    lateinit private var loco_icon: ImageView
+    lateinit private var powerBtn: PowerButton
+    lateinit private var stopBtn: Button
+    lateinit private var lampBtn: FunctionButton
+    lateinit private var functionBtn: FunctionButton
+    lateinit private var changeDirBtn: ImageButton
+    lateinit private var speedBar: SpeedBarView
+    //lateinit private var speedBar2 : SeekBar
+    lateinit private var jogView: RotaryKnobView
     private var mToast: Toast? = null
     private var mHandler = Handler()  // used for UI Update timer
     private var mCounter = 0
@@ -42,81 +47,96 @@ class MainActivity : AppCompatActivity() {
 
         builder = AlertDialog.Builder(this)
 
-        powerBtn = findViewById<View>(R.id.powerBtn) as PowerButton
-        speedbar = findViewById<View>(R.id.speedbar) as SpeedBarView
-        loco_text = findViewById<View>(R.id.loco_adr) as TextView
+        locoAddr = findViewById<View>(R.id.loco_adr) as TextView
         loco_icon = findViewById<View>(R.id.loco_icon) as ImageView
-        change_dir = findViewById<View>(R.id.change_dir) as ImageButton
+        powerBtn = findViewById<View>(R.id.powerBtn) as PowerButton
+        stopBtn = findViewById<View>(R.id.loco_stop) as Button
+        lampBtn = findViewById<View>(R.id.f0) as FunctionButton
+        functionBtn = findViewById<View>(R.id.f1) as FunctionButton
+        changeDirBtn = findViewById<View>(R.id.change_dir) as ImageButton
+        speedBar = findViewById<View>(R.id.speedbar) as SpeedBarView
+        jogView = findViewById<View>(R.id.jogView) as RotaryKnobView
 
-        val jogView = findViewById<View>(R.id.jogView) as RotaryKnobView
-        speedbar!!.intSpeed = 0
+        locoAddr.setText("$selLocoAddr")
 
+        //speedbar!!.sxSpeed = 0
         jogView.setKnobListener(object : RotaryKnobView.RotaryKnobListener {
             override fun onKnobChanged(delta: Float, angle: Float) {
-                speedbar!!.diffSpeed(delta)
-                selectedLoco.setLocoSpeed(speedbar!!.intSpeed)
+                speedBar.diffSpeed(delta)
+                LocoUtil.setSpeed(speedBar.sxSpeed)
+                speedBar.setTitle("S=${speedBar.sxSpeed}")
+                Log.d(TAG,"knob changed delta=$delta sxSpeed=${speedBar.sxSpeed}")
             }
         })
 
-        change_dir!!.setOnClickListener {
-            // Perform action on click: toggle direction
+        changeDirBtn.setOnClickListener {
+            LocoUtil.setSpeed(0)
+            LocoUtil.toggleDir()
+            speedBar.setSXSpeed(0)
+            speedBar.setTitle("S=0")
 
-            selectedLoco.toggleDir()
-            if (selectedLoco.speed < 0) {
-                change_dir!!.setImageResource(R.drawable.left2)
-
+            if (LocoUtil.isForward() ) {
+                changeDirBtn.setImageResource(R.drawable.right2)
             } else {
-                change_dir!!.setImageResource(R.drawable.right2)
+                changeDirBtn.setImageResource(R.drawable.left2)
             }
-            selectedLoco.setLocoSpeed(0)
-            speedbar!!.setSpeed(0f)
         }
 
-        loco_icon!!.isClickable = true
+        /* TODO
+         loco_icon!!.isClickable = true
         loco_icon!!.setOnClickListener {
-            /* TODO startActivity(
+            // TODO startActivity(
                 Intent(
                     this@MainActivityActivity,
                     SelectLocoActivity::class.java
                 )
-            ) */
-        }
+            )
+        }  */
 
-        val loco_stop = findViewById<View>(R.id.loco_stop) as Button
 
-        loco_stop.setOnClickListener {
+
+        stopBtn.setOnClickListener {
             // Perform action on click: stop
-            selectedLoco.setLocoSpeed(0)
-            speedbar!!.intSpeed = 0
-
+            LocoUtil.setSpeed(0)
+            speedBar.setSXSpeed(0)
         }
 
-        powerBtn!!.setOnClickListener {
+        powerBtn.setOnClickListener {
             togglePower()
-            powerBtn!!.invalidate()
+            powerBtn.invalidate()
         }
-        // indexes from 0 to (MAX_FUNC-1)
-        f[0] = findViewById<View>(R.id.f0) as FunctionButton
-        f[1] = findViewById<View>(R.id.f1) as FunctionButton
-        f[0]?.setOnClickListener  { processFunctionKey(0) }
-        f[1]?.setOnClickListener  { processFunctionKey(1) }
+
+        lampBtn.setOnClickListener { LocoUtil.toggleLamp() }
+        functionBtn.setOnClickListener { LocoUtil.toggleFunction() }
+
 
         builder = AlertDialog.Builder(this)
         builder.setMessage("Are you sure you want to exit?")
             .setCancelable(false)
             .setPositiveButton("Yes") { dialog, id ->
-                    // TODO shutdownSXClient()
+                    shutdownSXClient()
                     try {
                         Thread.sleep(100)
                     } catch (e: InterruptedException) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace()
+                        Log.e(TAG,e.message)
                     }
-
                     finish()
                 }
             .setNegativeButton("No") { dialog, id -> dialog.cancel() }
 
+    }
+
+    override fun onProgressChanged(seekBar: SeekBar, progress: Int,
+                                   fromUser: Boolean) {
+        Log.d(TAG,"Bar progress=$progress")
+    }
+
+    override fun onStartTrackingTouch(seekBar: SeekBar) {
+        Log.d(TAG,"Bar startTouch")
+    }
+
+    override fun onStopTrackingTouch(seekBar: SeekBar) {
+        Log.d(TAG,"Bar stopTouch")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -162,18 +182,10 @@ class MainActivity : AppCompatActivity() {
         val editor = prefs.edit()
         Log.d(TAG, "saveCurrentLoco")
         // generic
-        val adr = selectedLoco?.adr ?: 3
+        val adr = selLocoAddr
         editor.putInt(KEY_LOCO_ADDR, adr)  // last used loco address
-        val data = selectedLoco?.getSXData() ?: 0
-        editor.putInt(KEY_LOCO_DATA, data)  // last used loco address
         editor.apply()
 
-
-        // firstStart=false; // flag to avoid re-connection call during first
-        // start
-        //sendQ.add(DISCONNECT);
-        // ((AndroPanelApplication) getApplication()).saveZoomEtc();
-        // client.shutdown();
         pauseTimer = true
     }
 
@@ -183,34 +195,23 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
 
-        if (selectedLoco == null) {
+        selLocoAddr = 25
+        /*
+        if (selLocoAddr == INVALID_INT) {
+            selLocoAddr = prefs.getInt(KEY_LOCO_ADDR, DEFAULT_LOCO)
             if (DEBUG)
-                Log.d(TAG, "loading lastLoco Adr from prefs - last adr=" + selectedLoco.getAdr())
-            selectedLoco.adr = prefs.getInt(KEY_LOCO_ADDR, DEFAULT_LOCO)
-        }
-        if (DEBUG) Log.d(TAG, "loading sx data from prefs" + selectedLoco.getAdr())
-        selectedLoco.updateLocoFromSX(prefs.getInt(KEY_LOCO_DATA, 0))
-
-        loco_text!!.text = "A: " + selectedLoco.getAdr()
-        //loco_icon!!.setImageBitmap(selectedLoco.getIcon())
-        speedbar!!.setTitle("LOCO#"+selectedLoco.getAdr()) // TODO selectedLoco.getName())
-        if (selectedLoco.forward) {
-            change_dir!!.setImageResource(R.drawable.right2)
-        } else {
-            change_dir!!.setImageResource(R.drawable.left2)
-        }
-
-        speedbar!!.intSpeed = selectedLoco.speed
-        sendQ.offer("S "+ selectedLoco.adr + " " + selectedLoco.getSXData())
-        f[0]!!.setON(selectedLoco.lamp)
-        f[1]!!.setON(selectedLoco.function)
+                Log.d(TAG, "loading lastLoco Adr from prefs - addr=$selLocoAddr")
+        } */
+        sendQ.offer("R $selLocoAddr")   // try to update loco data from SXnet
+        locoAddr.text = "A=" + selLocoAddr
+        //loco_icon!!.setImageBitmap(selLocoAddr.getIcon())
+        //speedbar!!.setTitle("LOCO#"+selLocoAddr) // TODO selLocoAddr.getName())
 
         if (prefs.getBoolean(KEY_ALLOW_POWER_CONTROL, true)) {
             powerBtn!!.activate()
         } else {
             powerBtn!!.deactivate()
         }
-
 
         startSXNetCommunication()
         mHandler.postDelayed({ updateUI() }, 500)
@@ -220,26 +221,30 @@ class MainActivity : AppCompatActivity() {
     private fun updateUI() {
         mCounter++
 
-        // logString is updated via Binding mechanism
-
         // the actionBar icons are NOT updated via binding, because
         // "At the moment, data binding is only for layout resources, not menu resources" (google)
         // and the implementation to "work around" this limitation looks very complicated, see
         // https://stackoverflow.com/questions/38660735/how-bind-android-databinding-to-menu
         //setConnectionIcon()
         if (globalPower) {
-            powerBtn!!.activate()
+            powerBtn.activate()
         } else {
-            powerBtn!!.deactivate()
+            powerBtn.deactivate()
         }
-        f[0]!!.setON(selectedLoco.lamp)
-        f[1]!!.setON(selectedLoco.function)
-        speedbar!!.intSpeed = selectedLoco.speed
-
-        selectedLoco!!.sendLocoToSXNet()
-
+        lampBtn.setON(LocoUtil.isLampOn())
+        functionBtn.setON(LocoUtil.isFunctionOn())
+        if (LocoUtil.isForward() ) {
+            changeDirBtn!!.setImageResource(R.drawable.right2)
+        } else {
+            changeDirBtn!!.setImageResource(R.drawable.left2)
+        }
+        if (selLocoAddr != INVALID_INT) {
+            speedBar.setSXSpeed(sxData[selLocoAddr])
+        }
+        //speedbar.sxSpeed = LocoUtil.getSpeed()
         mHandler.postDelayed({ updateUI() }, 500)
     }
+
     private fun logDensity() {
         val density = resources.displayMetrics.densityDpi
 
@@ -255,7 +260,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun shutdownSXClient() {
+    private fun shutdownSXClient() {
         Log.d(TAG, "MainActivity - shutting down SXnet Client.")
 
         client?.shutdown()
@@ -264,7 +269,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun startSXNetCommunication() {
+    private fun startSXNetCommunication() {
         Log.d(TAG, " - startSXNetCommunication.")
         if (client != null) {
             client?.shutdown()
@@ -286,12 +291,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun processFunctionKey(k : Int) {
-        when(k) {
-            0 -> selectedLoco.toggleLocoLamp()
-            1 -> selectedLoco.toggleFunc()
-        }
-    }
     private fun togglePower() {
         if (!globalPower) {
             sendQ.offer("SETPOWER 1")

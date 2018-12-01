@@ -163,9 +163,12 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
 
 
     private fun immediateSend(command: String) {
-        if (shutdownFlag || clientTerminated) return
+        if (shutdownFlag || clientTerminated) {
+            if (DEBUG) Log.e(TAG, "shutdown, could not send: $command")
+            return
+        }
         if (out == null) {
-            if (DEBUG) Log.d(TAG, "out=null, could not send: $command")
+            if (DEBUG) Log.e(TAG, "out=null, could not send: $command")
         } else {
             try {
                 out!!.println(command)

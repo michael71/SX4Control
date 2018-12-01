@@ -8,16 +8,17 @@ import android.util.AttributeSet
 
 class SpeedBarView : android.support.v7.widget.AppCompatImageView {
 
-    internal var myPaint = Paint()
-    var sBarWidth: Int = 0
-    var sBarHeight: Int = 0
-    private var speed = 0f
-    private var title: String? = null
+    private var myPaint = Paint()
+    private var sBarWidth: Int = 0
+    private var sBarHeight: Int = 0
+    private var speed = 0f      // relative speed 0 ... 1000f
+    private val speedFac = 31f/1000f
+    private var title: String = "?"
 
-    var intSpeed: Int
-        get() = (speed / 1).toInt()
+    var sxSpeed: Int           // selectrix speed 0 .. 31
+        get() = (speed * speedFac).toInt()
         set(ispeed) {
-            speed = ispeed * 1f
+            speed = ispeed / speedFac
             if (speed > 1000f) speed = 1000f
             if (speed < 0) speed = 0f
             invalidate()
@@ -48,14 +49,21 @@ class SpeedBarView : android.support.v7.widget.AppCompatImageView {
     fun diffSpeed(diff: Float) {
         if (Math.abs(diff) > 30) return   // maybe erratic moves
 
-        speed = speed + diff /// or (diff/2f); =more turns needed
+        speed += diff /// or (diff/2f); =more turns needed
         if (speed > 1000f) speed = 1000f
         if (speed < 0) speed = 0f
         invalidate()
     }
 
-    fun setSpeed(newspeed: Float) {
-        speed = newspeed
+    fun setSpeed(newSpeed: Float) {
+        speed = newSpeed
+        if (speed > 1000f) speed = 1000f
+        if (speed < 0) speed = 0f
+        invalidate()
+    }
+
+    fun setSXSpeed(sxSpeed : Int) {
+        speed = sxSpeed / speedFac
         if (speed > 1000f) speed = 1000f
         if (speed < 0) speed = 0f
         invalidate()

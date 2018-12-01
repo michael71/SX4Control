@@ -2,7 +2,6 @@ package de.blankedv.sx4control
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Message
 import android.preference.PreferenceManager
@@ -17,8 +16,6 @@ import java.util.concurrent.BlockingQueue
 class MainApplication : Application() {
 
     var timeOfLastReceivedMessage = 0L
-    var client: SXnetClientThread? = null
-
 
     //@SuppressLint("HandlerLeak")
     @SuppressLint("HandlerLeak")
@@ -28,8 +25,8 @@ class MainApplication : Application() {
             Log.d(TAG, "onCreate MainApplication")
 
 
-
-        val myAndroidDeviceId = Settings.Secure.getString(applicationContext.contentResolver, Settings.Secure.ANDROID_ID)
+        val myAndroidDeviceId =
+            Settings.Secure.getString(applicationContext.contentResolver, Settings.Secure.ANDROID_ID)
 
         Log.d(TAG, "MainApplication - androidDeviceID=$myAndroidDeviceId")
         // scaling, zoom prefs are loaded from LanbahnPanelActivity
@@ -57,9 +54,6 @@ class MainApplication : Application() {
 
                     TYPE_SX_MSG -> {
                         sxData[chan] = data
-                        if (selectedLoco?.adr == chan) {
-                            selectedLoco?.updateLocoFromSX(data)
-                        }
                         Log.d(TAG, "rec sxMsg a=$chan d=$data")
                     }
 
@@ -86,76 +80,61 @@ class MainApplication : Application() {
 
     }
 
-    fun saveCurrentLoco() {
-
-        val prefs = PreferenceManager
-            .getDefaultSharedPreferences(this)
-        val editor = prefs.edit()
-        Log.d(TAG, "saveCurrentLoco")
-        // generic
-
-
-            val adr = selectedLoco?.adr ?: 3
-            editor.putInt(KEY_LOCO_ADDR, adr)  // last used loco address
-        val data = selectedLoco?.getSXData() ?: 0
-        editor.putInt(KEY_LOCO_DATA, data)  // last used loco address
-
-        editor.apply()
-    }
-
-
-
 
     /**
      * Display OnGoing Notification that indicates Network Thread is still Running.
      * Currently called from LanbahnPanelActivity onPause, passing the current intent
      * to return to when reopening.
      */
- /* TODO   internal fun addNotification(notificationIntent: Intent) {
-        val channelId = getString(R.string.default_notification_channel_id)
-        val builder = NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.lb_icon)
-                .setContentTitle(this.getString(R.string.notification_title))
-                .setContentText(this.getString(R.string.notification_text))
-                .setOngoing(true)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+    /* TODO   internal fun addNotification(notificationIntent: Intent) {
+           val channelId = getString(R.string.default_notification_channel_id)
+           val builder = NotificationCompat.Builder(this, channelId)
+                   .setSmallIcon(R.drawable.lb_icon)
+                   .setContentTitle(this.getString(R.string.notification_title))
+                   .setContentText(this.getString(R.string.notification_text))
+                   .setOngoing(true)
+                   .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        val contentIntent = PendingIntent.getActivity(this, LBP_NOTIFICATION_ID, notificationIntent,
-                PendingIntent.FLAG_CANCEL_CURRENT)
-        builder.setContentIntent(contentIntent)
+           val contentIntent = PendingIntent.getActivity(this, LBP_NOTIFICATION_ID, notificationIntent,
+                   PendingIntent.FLAG_CANCEL_CURRENT)
+           builder.setContentIntent(contentIntent)
 
-        // Add as notification
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+           // Add as notification
+           val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Since android Oreo notification channel is needed.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId,
-                    "Lanbahn Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT)
-            manager.createNotificationChannel(channel)
-        }
+           // Since android Oreo notification channel is needed.
+           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+               val channel = NotificationChannel(channelId,
+                       "Lanbahn Channel",
+                       NotificationManager.IMPORTANCE_DEFAULT)
+               manager.createNotificationChannel(channel)
+           }
 
-        manager.notify(LBP_NOTIFICATION_ID, builder.build())
-    }
+           manager.notify(LBP_NOTIFICATION_ID, builder.build())
+       }
 
-    // Remove notification
-    internal fun removeNotification() {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.cancel(LBP_NOTIFICATION_ID)
-    }  */
+       // Remove notification
+       internal fun removeNotification() {
+           val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+           manager.cancel(LBP_NOTIFICATION_ID)
+       }  */
 
     companion object {
 
         lateinit var handler: Handler // used for communication from RRConnection Thread to UI (application)
         var connString = ""
-
-        var pauseTimer = false
-        var globalPower = false
         var cmdStationConnected = false
-        var sxData = IntArray(SXMAX+1)
-        var selectedLoco = Loco("Lok3",3)
+        var pauseTimer = false
+
         val sendQ: BlockingQueue<String> = ArrayBlockingQueue(500)
 
+        @Volatile
+        var globalPower = false
+
+        @Volatile
+        var sxData = IntArray(SXMAX + 1)
+        @Volatile
+        var selLocoAddr = INVALID_INT
     }
 }
 

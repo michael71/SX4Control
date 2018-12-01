@@ -11,21 +11,23 @@ import android.view.MotionEvent
 class RotaryKnobView : android.support.v7.widget.AppCompatImageView {
 
     private var angle = 0f
-    private var theta_old = 0f
+    private var thetaOld = 0f
     private var knobWidth: Int = 0
     private var knobHeight: Int = 0
 
     private var listener: RotaryKnobListener? = null
 
     constructor(context: Context) : super(context) {
-        // TODO Auto-generated constructor stub
+        initialize()
     }
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         initialize()
     }
 
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {}
+    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {
+        initialize()
+    }
 
     fun setKnobListener(l: RotaryKnobListener) {
         listener = l
@@ -56,13 +58,12 @@ class RotaryKnobView : android.support.v7.widget.AppCompatImageView {
 
         this.setImageResource(R.drawable.jog)
         setOnTouchListener { v, event ->
-            // TODO Auto-generated method stub
             val action = event.action
             val actionCode = action and MotionEvent.ACTION_MASK
             if (actionCode == MotionEvent.ACTION_POINTER_DOWN) {
                 val x = event.getX(0)
                 val y = event.getY(0)
-                theta_old = getTheta(x, y)
+                thetaOld = getTheta(x, y)
 
             } else if (actionCode == MotionEvent.ACTION_MOVE) {
 
@@ -71,9 +72,9 @@ class RotaryKnobView : android.support.v7.widget.AppCompatImageView {
                 val y = event.getY(0)
 
                 val theta = getTheta(x, y)
-                val delta_theta = theta - theta_old
+                val delta_theta = theta - thetaOld
 
-                theta_old = theta
+                thetaOld = theta
 
                 //int direction = (delta_theta > 0) ? 1 : -1;
                 angle = theta - 270
