@@ -18,4 +18,11 @@
     <string name="sxnet_server_settings" translatable="false">SXnet Server Settings</string>
     <string name="stop_loco"  translatable="false">STOP</string>
     <string name="enable_power_control"  translatable="false">Enable Global Power On/Off Control</string>
+    <string name="f0">F0</string>
+    <string name="f1">F1</string>
+    <string name="locoicon">locoIcon</string>
+    <string name="direction">Direction</string>
+    <string name="addressValue">A=??</string>
+    <string name="loco_address">Loco Address</string>
+    <string name="noLocoSelected">No Loco</string>
 </resources>
