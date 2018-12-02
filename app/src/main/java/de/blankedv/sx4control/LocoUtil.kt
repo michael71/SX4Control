@@ -77,5 +77,39 @@ class LocoUtil {
             }
             updateLoco()
         }
+
+        fun SXBinaryString(data: Int): String {
+            val s = StringBuffer("00000000")
+            val pos = 0
+
+            if (data == INVALID_INT) return "--------"   // empty data
+
+            // Selectrix Schreibweise LSB vorn !!
+            if (data and 0x01 == 0x01) {
+                s.setCharAt(0 + pos, '1')
+            }
+            if (data and 0x02 == 0x02) {
+                s.setCharAt(1 + pos, '1')
+            }
+            if (data and 0x04 == 0x04) {
+                s.setCharAt(2 + pos, '1')
+            }
+            if (data and 0x08 == 0x08) {
+                s.setCharAt(3 + pos, '1')
+            }
+            if (data and 0x10 == 0x10) {
+                s.setCharAt(4 + pos, '1')
+            }
+            if (data and 0x20 == 0x20) {
+                s.setCharAt(5 + pos, '1')
+            }
+            if (data and 0x40 == 0x40) {
+                s.setCharAt(6 + pos, '1')
+            }
+            if (data and 0x80 == 0x80) {
+                s.setCharAt(7 + pos, '1')
+            }
+            return s.toString()
+        }
     }
 }

@@ -14,6 +14,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import de.blankedv.sx4control.MainApplication.Companion.relevantChans
 import de.blankedv.sx4control.MainApplication.Companion.globalPower
 import de.blankedv.sx4control.MainApplication.Companion.pauseTimer
 import de.blankedv.sx4control.MainApplication.Companion.selLocoAddr
@@ -43,6 +44,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     private var client: SXnetClientThread? = null
 
+    private val channelList = mutableListOf<String>("")
+
+    private lateinit var adapter : ArrayAdapter<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,14 +66,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         speedBar2.setOnSeekBarChangeListener(this)
 
         channelView = findViewById<View>(R.id.channelView) as ListView
-        val channelList = arrayListOf<String>("DUMMY DATA","12 0", "32 00", "44 55", "88 12", "90 2")
-        val adapter =
-            ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
-        channelView.adapter = adapter
+
+
 
         tvAddr.text = "A = $selLocoAddr"
         changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
-        changeDirBtn.im_on  = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
+        changeDirBtn.im_on = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
         stopBtn.darken = true   // => not changing appearance
 
         changeDirBtn.setOnClickListener {
@@ -98,7 +101,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             .setNegativeButton("No") { dialog, id -> dialog.cancel() }
 
         tvAddr.setOnClickListener { addressPickerDialog() }
-
+        adapter =
+                ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
+        channelView.adapter = adapter
     }
 
     override fun onProgressChanged(
@@ -145,7 +150,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             R.id.action_reconnect, R.id.action_connect -> {
                 startSXNetCommunication()
                 pauseTimer = false
-                toast("reconnect")
+                toast("trying reconnect")
             }
             R.id.action_power -> {
                 togglePower()
@@ -186,6 +191,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         }
         sendQ.offer("R $selLocoAddr")   // request update of loco data from SXnet
         tvAddr.text = "A=$selLocoAddr"
+        MainApplication.addRelevantChan(selLocoAddr)
         //loco_icon!!.setImageBitmap(selLocoAddr.getIcon())
 
         startSXNetCommunication()
@@ -222,6 +228,19 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         } else {
             tvAddr.text = getString(R.string.noLocoSelected)
         }
+
+        channelList.clear()
+        for (i in 0..SXMAX) {
+            val sx = sxData[i]
+            if (relevantChans.contains(i) or (sx != 0)) {
+                val s = i.toString().padStart(3, '_')  + "  " +
+                        sx.toString().padStart(3, '_') + "   (" + LocoUtil.SXBinaryString(sx) +")"
+                channelList.add(s)
+            }
+        }
+
+        adapter.notifyDataSetChanged() // = ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
+
         //speedbar.sxSpeed = LocoUtil.getSpeed()
         mHandler.postDelayed({ updateUI() }, 500)
     }
@@ -271,6 +290,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             client?.shutdown()
             mySleep(100)
         }
+        // reset data
+        for (i in 0..SXMAX) sxData[i] = 0
+        relevantChans.clear()
+        relevantChans.add(selLocoAddr)
+
         val prefs = PreferenceManager
             .getDefaultSharedPreferences(this)
         val ip = prefs.getString(KEY_IP, SXNET_START_IP)
@@ -315,6 +339,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         dialogBuilder.setTitle("Lok-Adresse auswählen")
         dialogBuilder.setPositiveButton("Save") { dialog, btn ->
             selLocoAddr = num.value
+            MainApplication.addRelevantChan(selLocoAddr)
             sendQ.offer("R $selLocoAddr")
             dialog.cancel()
         }

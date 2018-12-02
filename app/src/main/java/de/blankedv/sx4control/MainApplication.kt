@@ -55,6 +55,7 @@ class MainApplication : Application() {
 
                     TYPE_SX_MSG -> {
                         sxData[chan] = data
+                        if (data != 0) addRelevantChan(chan)
                         Log.d(TAG, "rec sxMsg a=$chan d=$data")
                         timeOfLastReceivedMessage = System.currentTimeMillis()
                     }
@@ -82,8 +83,7 @@ class MainApplication : Application() {
 
     }
 
-
-    /**
+      /**
      * Display OnGoing Notification that indicates Network Thread is still Running.
      * Currently called from LanbahnPanelActivity onPause, passing the current intent
      * to return to when reopening.
@@ -99,7 +99,7 @@ class MainApplication : Application() {
 
            val contentIntent = PendingIntent.getActivity(this, LBP_NOTIFICATION_ID, notificationIntent,
                    PendingIntent.FLAG_CANCEL_CURRENT)
-           builder.setContentIntent(contentIntent)
+           builder.setContentIntent(conteMainApplication.addRelevantChan(selLocoAddr)ntIntent)
 
            // Add as notification
            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -131,8 +131,9 @@ class MainApplication : Application() {
         val sendQ: BlockingQueue<String> = ArrayBlockingQueue(500)
 
         @Volatile
+        var relevantChans = mutableListOf<Int>()
+        @Volatile
         var globalPower = false
-
         @Volatile
         var sxData = IntArray(SXMAX + 1)
         @Volatile
@@ -142,6 +143,12 @@ class MainApplication : Application() {
 
         fun connectionIsAlive() : Boolean {
             return ( (System.currentTimeMillis() - timeOfLastReceivedMessage) < 5000)
+        }
+
+        fun addRelevantChan ( chan  : Int) {
+            if (!relevantChans.contains(chan)) {
+                relevantChans.add(chan)
+            }
         }
 
     }
