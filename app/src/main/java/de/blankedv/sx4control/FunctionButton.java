@@ -58,20 +58,21 @@ public class FunctionButton extends AppCompatButton {
         int h = this.getHeight();
 
         if ((im_on == null) || (im_off == null)) {
-            if (ON) {
-                Paint paint = new Paint();
-                paint.setAntiAlias(true);
-                paint.setColor(Color.GRAY);
-                canvas.drawCircle(w / 5, h / 5, w / 10, paint);
-                paint.setColor(Color.YELLOW);
-                canvas.drawCircle(w / 5, h / 5, (w / 10 - 2), paint);
-            } else {
-                Paint paint = new Paint();
-                paint.setAntiAlias(true);
-                paint.setColor(Color.GRAY);
-                canvas.drawCircle(w / 5, h / 5, w / 10, paint);
-            }
-        } else {
+
+                if (ON) {
+                    Paint paint = new Paint();
+                    paint.setAntiAlias(true);
+                    paint.setColor(Color.GRAY);
+                    canvas.drawCircle(w / 5, h / 5, w / 10, paint);
+                    paint.setColor(Color.YELLOW);
+                    canvas.drawCircle(w / 5, h / 5, (w / 10 - 2), paint);
+                } else {
+                    Paint paint = new Paint();
+                    paint.setAntiAlias(true);
+                    paint.setColor(Color.GRAY);
+                    canvas.drawCircle(w / 5, h / 5, w / 10, paint);
+                }
+           } else {
             float x = w / 2 - im_on.getWidth() / 2;
             float y = h / 2 - im_on.getHeight() / 2;
             if (ON) {

@@ -2,10 +2,12 @@ package de.blankedv.sx4control
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
@@ -25,10 +27,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private lateinit var builder: AlertDialog.Builder
     private lateinit var tvAddr: TextView
     private lateinit var loco_icon: ImageView
-    private lateinit var stopBtn: Button
+    // all buttons are of type "FunctionButton" because this seems to render them to the exact same size
+    private lateinit var stopBtn: FunctionButton
     private lateinit var lampBtn: FunctionButton
     private lateinit var functionBtn: FunctionButton
-    private lateinit var changeDirBtn: ImageButton
+    private lateinit var changeDirBtn: FunctionButton
     private lateinit var speedBar2: SeekBar
 
     private lateinit var channelView: ListView
@@ -42,7 +45,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_main_vertical) VSeekBar not really working
+        //setContentView(R.layout.activity_main_vertical)
+        // VSeekBar not really working
         // thumb is not draw at correct position if it is not touch but changed
         // via  setting progress
 
@@ -52,10 +56,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
         tvAddr = findViewById<View>(R.id.tvAddr) as TextView
         loco_icon = findViewById<View>(R.id.loco_icon) as ImageView
-        stopBtn = findViewById<View>(R.id.stopBtn) as Button
+        stopBtn = findViewById<View>(R.id.stopBtn) as FunctionButton
         lampBtn = findViewById<View>(R.id.f0) as FunctionButton
         functionBtn = findViewById<View>(R.id.f1) as FunctionButton
-        changeDirBtn = findViewById<View>(R.id.changeBtn) as ImageButton
+        changeDirBtn = findViewById<View>(R.id.changeBtn) as FunctionButton
 
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
@@ -68,16 +72,15 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         channelView.adapter = adapter
 
         tvAddr.text = "A = $selLocoAddr"
+        changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
+        changeDirBtn.im_on  = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
+        stopBtn.darken = true
 
         changeDirBtn.setOnClickListener {
             LocoUtil.setSpeed(0)
             LocoUtil.toggleDir()
             speedBar2.progress = 0
-            if (LocoUtil.isForward()) {
-                changeDirBtn.setImageResource(R.drawable.right3)
-            } else {
-                changeDirBtn.setImageResource(R.drawable.left3)
-            }
+            changeDirBtn.setON(LocoUtil.isForward())
         }
 
         stopBtn.setOnClickListener {
@@ -213,11 +216,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         setPowerAndConnectionIcon()
         lampBtn.setON(LocoUtil.isLampOn())
         functionBtn.setON(LocoUtil.isFunctionOn())
-        if (LocoUtil.isForward()) {
-            changeDirBtn!!.setImageResource(R.drawable.right3)
-        } else {
-            changeDirBtn!!.setImageResource(R.drawable.left3)
-        }
+        changeDirBtn.setON(LocoUtil.isForward())
+
         if (selLocoAddr != INVALID_INT) {
             //speedBar.setSXSpeed(sxData[selLocoAddr])
             val speed = (sxData[selLocoAddr] and 0x1f)
