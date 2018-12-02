@@ -21,5 +21,18 @@
             android:orderInCategory="115"
             android:title="@string/action_exit"
             app:showAsAction="never"/>
+    <item
+            android:id="@+id/action_power"
+            android:layout_width="wrap_content"
+            android:icon="@drawable/power_unknown"
+            android:orderInCategory="50"
+            android:title="@string/power"
+            app:showAsAction="always" />
+    <item
+            android:id="@+id/action_connect"
+            android:icon="@drawable/nocomm"
+            android:orderInCategory="60"
+            android:title="@string/connect"
+            app:showAsAction="always" />
 
 </menu>

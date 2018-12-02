@@ -5,7 +5,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="de.blankedv.sx4control.MainActivity">
+        tools:context="de.blankedv.sx4control.MainActivity" android:background="@android:color/background_dark">
+    <!--android:background="@android:color/background_dark"> -->
 
     <SeekBar
             android:id="@+id/speedBar2"
@@ -13,8 +14,13 @@
             android:layout_height="wrap_content"
             android:progressDrawable="@drawable/seek_bar"
             android:thumb="@drawable/seek_thumb"
-            android:padding="30dp"
-            android:max="31"/>
+            android:padding="20dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:max="31"
+            android:background="@drawable/rounded_view" />
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   android:layout_width="fill_parent"
                   android:layout_height="0px"
@@ -39,17 +45,11 @@
                 android:gravity="center"
                 android:textSize="24sp"
                 android:contentDescription="@string/loco_address"/>
-        <de.blankedv.sx4control.PowerButton
-                android:id="@+id/powerBtn"
-                android:layout_width="0px"
-                android:layout_height="fill_parent"
-                android:layout_weight="4"
-                android:background="@android:color/background_dark"/>
     </LinearLayout>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   android:layout_width="fill_parent"
                   android:layout_height="0px"
-                  android:layout_weight="3"
+                  android:layout_weight="2.5"
                   android:background="@android:color/background_dark"
                   android:orientation="horizontal">
         <de.blankedv.sx4control.FunctionButton
@@ -71,7 +71,7 @@
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_weight="25"
-                android:src="@drawable/right2"
+                android:src="@drawable/right3"
                 android:textSize="22sp" android:contentDescription="@string/direction"/>
         <Button
                 android:id="@+id/stopBtn"
@@ -85,7 +85,7 @@
             android:id="@+id/channelView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="8">
+            android:layout_weight="8" android:background="#d3f8d1">
 
     </ListView>
 </LinearLayout>

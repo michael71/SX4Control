@@ -15,7 +15,7 @@ import java.util.concurrent.BlockingQueue
 
 class MainApplication : Application() {
 
-    var timeOfLastReceivedMessage = 0L
+
 
     //@SuppressLint("HandlerLeak")
     @SuppressLint("HandlerLeak")
@@ -41,11 +41,12 @@ class MainApplication : Application() {
                 val what = msg.what
                 val chan = msg.arg1
                 val data = msg.arg2
-                timeOfLastReceivedMessage = System.currentTimeMillis()
+
                 when (what) {
                     TYPE_POWER_MSG -> {
                         globalPower = (data != 0)
                         Log.d(TAG, "rec gPower=$data")
+                        timeOfLastReceivedMessage = System.currentTimeMillis()
                     }
                     TYPE_CONNECTION_MSG -> {
                         cmdStationConnected = (data != 0)
@@ -55,6 +56,7 @@ class MainApplication : Application() {
                     TYPE_SX_MSG -> {
                         sxData[chan] = data
                         Log.d(TAG, "rec sxMsg a=$chan d=$data")
+                        timeOfLastReceivedMessage = System.currentTimeMillis()
                     }
 
                     /*  TYPE_SHUTDOWN_MSG -> {
@@ -135,6 +137,13 @@ class MainApplication : Application() {
         var sxData = IntArray(SXMAX + 1)
         @Volatile
         var selLocoAddr = INVALID_INT
+
+        var timeOfLastReceivedMessage = 0L
+
+        fun connectionIsAlive() : Boolean {
+            return ( (System.currentTimeMillis() - timeOfLastReceivedMessage) < 5000)
+        }
+
     }
 }
 
