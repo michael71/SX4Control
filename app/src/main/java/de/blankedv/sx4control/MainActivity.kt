@@ -45,10 +45,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_main_vertical)
-        // VSeekBar not really working
-        // thumb is not draw at correct position if it is not touch but changed
-        // via  setting progress
 
         setContentView(R.layout.activity_main)
 
@@ -63,18 +59,17 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
-        speedBar2.progress = 0
 
         channelView = findViewById<View>(R.id.channelView) as ListView
-        val channelList = arrayListOf<String>("12 0", "32 00", "44 55", "88 12", "90 2")
+        val channelList = arrayListOf<String>("DUMMY DATA","12 0", "32 00", "44 55", "88 12", "90 2")
         val adapter =
             ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
         channelView.adapter = adapter
 
         tvAddr.text = "A = $selLocoAddr"
-        changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
-        changeDirBtn.im_on  = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
-        stopBtn.darken = true
+        changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
+        changeDirBtn.im_on  = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
+        stopBtn.darken = true   // => not changing appearance
 
         changeDirBtn.setOnClickListener {
             LocoUtil.setSpeed(0)
