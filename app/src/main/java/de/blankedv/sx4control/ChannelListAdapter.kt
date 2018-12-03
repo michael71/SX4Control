@@ -42,8 +42,8 @@ class ChannelListAdapter(private val sxList: ArrayList<SXD>,
         fun bindForecast(sxd: SXD) {
             with(sxd) {
                 tvChanView.text = sxd.sx.toString()
-                tvDataView.text = sxd.data.toString()
-                tvGraphics.text = "(${LocoUtil.SXBinaryString(sxd.sx)})"
+                tvDataView.text = "(${sxd.data.toString()})"
+                tvGraphics.text = LocoUtil.SXBinaryString(sxd.data)
                 itemView.setOnClickListener { itemClick(this) }
             }
         }

@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="10dp">
 
@@ -14,22 +13,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="18sp"
             tools:text="chan"/>
 
         <TextView
             android:id="@+id/tvData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
+            android:paddingStart="5dp"
+            android:paddingLeft="5dp"
+            android:textSize="18sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             tools:text="data"/>
 
     <TextView
             android:id="@+id/tvDataGraphics"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
+            android:paddingStart="5dp"
+            android:paddingLeft="5dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="18sp"
+            android:gravity="end"
             tools:text="0001000"/>
 
     </LinearLayout>

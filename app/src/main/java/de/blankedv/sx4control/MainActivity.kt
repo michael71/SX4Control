@@ -23,6 +23,9 @@ import de.blankedv.sx4control.MainApplication.Companion.selLocoAddr
 import de.blankedv.sx4control.MainApplication.Companion.sendQ
 import de.blankedv.sx4control.MainApplication.Companion.sxData
 import org.jetbrains.anko.*
+import android.support.v7.widget.GridLayoutManager
+
+
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     NumberPicker.OnValueChangeListener {
@@ -65,9 +68,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
 
-
         channelView = find(R.id.channelView) as RecyclerView
-        channelView.layoutManager = LinearLayoutManager(this)
+        // add some space between the 2 columns
+        val spacing = 50 // 50px
+        val includeEdge = false
+        channelView.addItemDecoration(GridSpacingItemDecoration(2, spacing, includeEdge))
+        channelView.layoutManager = GridLayoutManager(this, 2)
+
         adapter = ChannelListAdapter(channelList,
             object : ChannelListAdapter.OnItemClickListener {
                 override fun invoke(sxd: SXD) {
