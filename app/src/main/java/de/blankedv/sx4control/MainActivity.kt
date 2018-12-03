@@ -8,6 +8,8 @@ import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
@@ -35,7 +37,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private lateinit var changeDirBtn: FunctionButton
     private lateinit var speedBar2: SeekBar
 
-    private lateinit var channelView: ListView
+    private lateinit var channelView: RecyclerView
+    private lateinit var adapter : ChannelListAdapter
     private lateinit var mOptionsMenu: Menu
 
     private var mToast: Toast? = null
@@ -44,9 +47,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     private var client: SXnetClientThread? = null
 
-    private val channelList = mutableListOf<String>("")
-
-    private lateinit var adapter : ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,9 +65,16 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
 
-        channelView = findViewById<View>(R.id.channelView) as ListView
 
-
+        channelView = find(R.id.channelView) as RecyclerView
+        channelView.layoutManager = LinearLayoutManager(this)
+        adapter = ChannelListAdapter(channelList,
+            object : ChannelListAdapter.OnItemClickListener {
+                override fun invoke(sxd: SXD) {
+                    toast(sxd.sx.toString())
+                }
+            })
+        channelView.adapter = adapter
 
         tvAddr.text = "A = $selLocoAddr"
         changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
@@ -101,9 +108,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             .setNegativeButton("No") { dialog, id -> dialog.cancel() }
 
         tvAddr.setOnClickListener { addressPickerDialog() }
-        adapter =
-                ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
-        channelView.adapter = adapter
+       // adapter =
+        //        ChannelListAdapter(channelList, private val channelList = mutableListOf<String>("")
+       // channelView.adapter = adapter
     }
 
     override fun onProgressChanged(
@@ -233,15 +240,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         for (i in 0..SXMAX) {
             val sx = sxData[i]
             if (relevantChans.contains(i) or (sx != 0)) {
-                val s = i.toString().padStart(3, '_')  + "  " +
-                        sx.toString().padStart(3, '_') + "   (" + LocoUtil.SXBinaryString(sx) +")"
-                channelList.add(s)
+                channelList.add(SXD(i,sx))
             }
         }
 
-        adapter.notifyDataSetChanged() // = ArrayAdapter(this, android.R.layout.simple_list_item_1, channelList)
+        adapter?.notifyDataSetChanged()
 
-        //speedbar.sxSpeed = LocoUtil.getSpeed()
         mHandler.postDelayed({ updateUI() }, 500)
     }
 
@@ -352,6 +356,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     companion object {
 
-
+        val channelList = arrayListOf<SXD>()
     }
 }
