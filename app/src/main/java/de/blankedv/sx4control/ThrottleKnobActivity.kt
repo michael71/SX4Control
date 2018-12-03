@@ -281,15 +281,15 @@ class ThrottleKnobActivity : Activity() {
         for (i in 0 until MAX_FUNC) {
             if (selLocoAddr.getNfunc() > i) {
                 if (prefs.getBoolean(KEY_INDIV_FUNC_KEYS, false) && selLocoAddr.FuncIconIsImage(i)) {
-                    f[i].im_on = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOn(i))
-                    f[i].im_off = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOff(i))
+                    f[i].imageOn = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOn(i))
+                    f[i].imageOff = BitmapFactory.decodeResource(res, selLocoAddr.getFuncIconOff(i))
                     f[i].setText("")
                 } else {
                     f[i].setText("F$i")
-                    f[i].im_on = null
-                    f[i].im_off = null
+                    f[i].imageOn = null
+                    f[i].imageOff = null
                 }
-                f[i].setON(selLocoAddr.func_on(i))
+                f[i].setOnState(selLocoAddr.func_on(i))
                 f[i].activate()
                 f[i].setClickable(true)
             } else {

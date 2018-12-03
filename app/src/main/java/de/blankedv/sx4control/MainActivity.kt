@@ -7,8 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
 import android.util.Log
@@ -70,7 +68,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
         channelView = find(R.id.channelView) as RecyclerView
         // add some space between the 2 columns
-        val spacing = 50 // 50px
+        val spacing = 24 // px
         val includeEdge = false
         channelView.addItemDecoration(GridSpacingItemDecoration(2, spacing, includeEdge))
         channelView.layoutManager = GridLayoutManager(this, 2)
@@ -84,8 +82,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         channelView.adapter = adapter
 
         tvAddr.text = "A = $selLocoAddr"
-        changeDirBtn.im_off = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
-        changeDirBtn.im_on = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
+        changeDirBtn.imageOff = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
+        changeDirBtn.imageOn = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
         stopBtn.darken = true   // => not changing appearance
 
         changeDirBtn.setOnClickListener {
@@ -219,6 +217,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     }
 
+    // assertion kept in case of rotation during execution of this code
     private fun updateUI() {
         mCounter++
 
@@ -251,25 +250,26 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             }
         }
 
-        adapter?.notifyDataSetChanged()
+        adapter!!.notifyDataSetChanged()
 
         mHandler.postDelayed({ updateUI() }, 500)
     }
 
+    // assertion kept in case of rotation during execution of this code
     private fun setPowerAndConnectionIcon() {
-        if (MainApplication.connectionIsAlive()) {
-            mOptionsMenu.findItem(R.id.action_connect)?.setIcon(R.drawable.commok)
+          if (MainApplication.connectionIsAlive()) {
+            mOptionsMenu!!.findItem(R.id.action_connect)?.setIcon(R.drawable.commok)
             when (globalPower) {
                 false -> {
-                    mOptionsMenu.findItem(R.id.action_power)?.setIcon(R.drawable.power_red)
+                    mOptionsMenu!!.findItem(R.id.action_power)?.setIcon(R.drawable.power_red)
                 } //power_red)
                 true -> {
-                    mOptionsMenu.findItem(R.id.action_power)?.setIcon(R.drawable.power_green)
+                    mOptionsMenu!!.findItem(R.id.action_power)?.setIcon(R.drawable.power_green)
                 }
             }
         } else {
-            mOptionsMenu.findItem(R.id.action_connect)?.setIcon(R.drawable.nocomm)
-            mOptionsMenu.findItem(R.id.action_power)?.setIcon(R.drawable.power_unknown)
+            mOptionsMenu!!.findItem(R.id.action_connect)?.setIcon(R.drawable.nocomm)
+            mOptionsMenu!!.findItem(R.id.action_power)?.setIcon(R.drawable.power_unknown)
         }
     }
 
