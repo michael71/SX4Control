@@ -141,10 +141,8 @@ class MainApplication : Application() {
         var sxData = IntArray(SXMAX + 1)
         @Volatile
         var selLocoAddr = INVALID_INT
-        @Volatile
-        var selSXAddress = INVALID_INT
-        @Volatile
-        var selSXData = INVALID_INT
+
+        var sxDataToEdit = INVALID_INT
 
         var timeOfLastReceivedMessage = 0L
 

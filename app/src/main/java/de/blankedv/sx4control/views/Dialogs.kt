@@ -2,25 +2,19 @@ package de.blankedv.sx4control.views
 
 import android.app.AlertDialog
 import android.view.LayoutInflater
-import android.view.View
 
-import android.content.DialogInterface
-import android.content.ContentValues.TAG
 import android.content.Context
-import android.content.res.Resources
-import android.opengl.Visibility
 import android.util.Log
+import android.view.View
 import android.widget.*
-import android.widget.AdapterView.OnItemSelectedListener
 import de.blankedv.sx4control.R
 import de.blankedv.sx4control.adapter.SXD
-import de.blankedv.sx4control.model.INVALID_INT
-import de.blankedv.sx4control.model.MainApplication.Companion.selSXAddress
-import de.blankedv.sx4control.model.MainApplication.Companion.selSXData
+
 import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
 import de.blankedv.sx4control.model.MainApplication.Companion.sxData
+import de.blankedv.sx4control.model.MainApplication.Companion.sxDataToEdit
+import de.blankedv.sx4control.model.TAG
 import org.jetbrains.anko.*
-import org.jetbrains.anko.internals.AnkoInternals.getContext
 
 
 /**
@@ -32,11 +26,10 @@ object Dialogs {
 
     fun openEditSXDataDialog(sxd : SXD, ctx : Context) {
 
-        selSXAddress = sxd.sx
-        selSXData = sxd.data
+        val selAddress = sxd.sx
+        sxDataToEdit = sxd.data
         val editDataView =
             LayoutInflater.from(ctx).inflate(R.layout.sxdata_dialog, null)
-
 
         val tvAddr = editDataView.find(R.id.tvEditAddress) as TextView
         val tvData = editDataView.find(R.id.tvEditData) as TextView
@@ -50,17 +43,17 @@ object Dialogs {
         var cb7 = editDataView.find(R.id.checkBox7) as CheckBox
         var cb8 = editDataView.find(R.id.checkBox8) as CheckBox   // bit 8
 
-        tvAddr.text = "Addr=$selSXAddress D="
-        tvData.text = selSXData.toString()
+        tvAddr.text = "Addr=$selAddress D="
+        tvData.text = sxDataToEdit.toString()
 
-        if ((selSXData and 0x01) != 0) cb1.setChecked(true)
-        if ((selSXData and 0x02) != 0) cb2.setChecked(true)
-        if ((selSXData and 0x04) != 0) cb3.setChecked(true)
-        if ((selSXData and 0x08) != 0) cb4.setChecked(true)
-        if ((selSXData and 0x10) != 0) cb5.setChecked(true)
-        if ((selSXData and 0x20) != 0) cb6.setChecked(true)
-        if ((selSXData and 0x40) != 0) cb7.setChecked(true)
-        if ((selSXData and 0x80) != 0) cb8.setChecked(true)
+        if ((sxDataToEdit and 0x01) != 0) cb1.setChecked(true)
+        if ((sxDataToEdit and 0x02) != 0) cb2.setChecked(true)
+        if ((sxDataToEdit and 0x04) != 0) cb3.setChecked(true)
+        if ((sxDataToEdit and 0x08) != 0) cb4.setChecked(true)
+        if ((sxDataToEdit and 0x10) != 0) cb5.setChecked(true)
+        if ((sxDataToEdit and 0x20) != 0) cb6.setChecked(true)
+        if ((sxDataToEdit and 0x40) != 0) cb7.setChecked(true)
+        if ((sxDataToEdit and 0x80) != 0) cb8.setChecked(true)
 
 
 
@@ -69,15 +62,12 @@ object Dialogs {
             .setCancelable(false)
             .setView(editDataView)
             .setPositiveButton("Speichern") { dialog, id ->
-                sxData[selSXAddress] = selSXData
-                ctx.toast("setting adr=$selSXAddress to d=$selSXData")
-                sendQ.offer("S $selSXAddress $selSXData")
-
-                selSXAddress = INVALID_INT  // reset to "unknown"
+                sxData[selAddress] = sxDataToEdit
+                ctx.toast("setting adr=$selAddress to d=$sxDataToEdit")
+                sendQ.offer("S $selAddress $sxDataToEdit")
                 dialog.dismiss()
             }
             .setNegativeButton("Zurück") { dialog, id ->
-                selSXAddress = INVALID_INT
                 ctx.toast("changes cancelled")
                 dialog.dismiss()
             }
@@ -85,7 +75,74 @@ object Dialogs {
         editDialog.show()
     }
 
+    fun onCheckboxClicked(view: View, data : Int) : Int {
+        var d = data
+        if (view is CheckBox) {
+            val checked: Boolean = view.isChecked
 
+            when (view.id) {
+                R.id.checkBox1 -> {
+                    if (checked) {
+                        d = d or 0x01
+                    } else {
+                        d = d and 0x01.inv()
+                    }
+                }
+                R.id.checkBox2 -> {
+                    if (checked) {
+                        d = d or 0x02
+                    } else {
+                        d = d and 0x02.inv()
+                    }
+                }
+                R.id.checkBox3 -> {
+                    if (checked) {
+                        d = d or 0x04
+                    } else {
+                        d = d and 0x04.inv()
+                    }
+                }
+                R.id.checkBox4 -> {
+                    if (checked) {
+                        d = d or 0x08
+                    } else {
+                        d = d and 0x08.inv()
+                    }
+                }
+                R.id.checkBox5 -> {
+                    if (checked) {
+                        d = d or 0x10
+                    } else {
+                        d = d and 0x10.inv()
+                    }
+                }
+                R.id.checkBox6 -> {
+                    if (checked) {
+                        d = d or 0x20
+                    } else {
+                        d = d and 0x20.inv()
+                    }
+                }
+                R.id.checkBox7 -> {
+                    if (checked) {
+                        d = d or 0x40
+                    } else {
+                        d = d and 0x40.inv()
+                    }
+                }
+                R.id.checkBox8 -> {
+                    if (checked) {
+                        d = d or 0x80
+                    } else {
+                        d = d and 0x80.inv()
+                    }
+                }
+            }
+            Log.d(TAG, "new data = $d")
+        }
+
+        return d
+    }
 /*    internal fun selectAddressDialog(el: PanelElement) {
 
         val factory = LayoutInflater.from(appContext)

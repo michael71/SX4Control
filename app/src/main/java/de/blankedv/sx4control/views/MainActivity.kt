@@ -1,7 +1,5 @@
 package de.blankedv.sx4control.views
 
-import android.app.Activity
-
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -25,12 +23,14 @@ import de.blankedv.sx4control.model.MainApplication.Companion.sxData
 import org.jetbrains.anko.*
 import android.support.v7.widget.GridLayoutManager
 import de.blankedv.sx4control.*
+import de.blankedv.sx4control.R.id.tvData
 import de.blankedv.sx4control.adapter.ChannelListAdapter
 import de.blankedv.sx4control.adapter.SXD
 import de.blankedv.sx4control.controls.FunctionButton
 import de.blankedv.sx4control.util.LocoUtil
 import de.blankedv.sx4control.model.*
-import de.blankedv.sx4control.model.MainApplication.Companion.selSXData
+import de.blankedv.sx4control.model.MainApplication.Companion.sxDataToEdit
+
 import de.blankedv.sx4control.views.Dialogs.openEditSXDataDialog
 
 
@@ -391,71 +391,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     fun onCheckboxClicked(view: View) {
         if (view is CheckBox) {
-            val checked: Boolean = view.isChecked
-
-            when (view.id) {
-                R.id.checkBox1 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x01
-                    } else {
-                        selSXData = selSXData and 0x01.inv()
-                    }
-                 }
-                R.id.checkBox2 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x02
-                    } else {
-                        selSXData = selSXData and 0x02.inv()
-                    }
-                }
-                R.id.checkBox3 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x04
-                    } else {
-                        selSXData = selSXData and 0x04.inv()
-                    }
-                }
-                R.id.checkBox4 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x08
-                    } else {
-                        selSXData = selSXData and 0x08.inv()
-                    }
-                }
-                R.id.checkBox5 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x10
-                    } else {
-                        selSXData = selSXData and 0x10.inv()
-                    }
-                }
-                R.id.checkBox6 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x20
-                    } else {
-                        selSXData = selSXData and 0x20.inv()
-                    }
-                }
-                R.id.checkBox7 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x40
-                    } else {
-                        selSXData = selSXData and 0x40.inv()
-                    }
-                }
-                R.id.checkBox8 -> {
-                    if (checked) {
-                        selSXData = selSXData or 0x80
-                    } else {
-                        selSXData = selSXData and 0x80.inv()
-                    }
-                }
-            }
-            Log.d(TAG,"new selSXData = $selSXData")
+           sxDataToEdit = Dialogs.onCheckboxClicked(view, sxDataToEdit)
         }
     }
     companion object {
 
         val channelList = arrayListOf<SXD>()
+
+
     }
 }
