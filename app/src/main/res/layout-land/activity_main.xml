@@ -41,14 +41,13 @@
                     android:src="@drawable/genloco"
                     android:contentDescription="@string/locoicon"/>
 
-            <TextView
-                    android:id="@+id/tvAddr"
+            <Spinner
+                    android:id="@+id/spAddress"
                     android:layout_width="0px"
-                    android:layout_height="fill_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="4"
-                    android:textColor="@color/colorPrimary"
                     android:gravity="center"
-                    android:textSize="24sp"
+                    android:textSize="30sp"
                     android:contentDescription="@string/loco_address"/>
         </LinearLayout>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

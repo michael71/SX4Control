@@ -12,6 +12,11 @@
             android:title="@string/action_reconnect"
             app:showAsAction="never"/>
     <item
+            android:id="@+id/action_add_channel"
+            android:orderInCategory="107"
+            android:title="Monitor add. Address"
+            app:showAsAction="never"/>
+    <item
             android:id="@+id/action_about"
             android:orderInCategory="110"
             android:title="@string/action_about"

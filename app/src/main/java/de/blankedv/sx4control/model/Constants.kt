@@ -22,6 +22,9 @@ const val SXNET_START_IP = "192.168.178.29"
 const val KEY_LOCO_ADDR = "lastLocoAddr"
 const val DEFAULT_LOCO = 25
 
+const val SELECT_LOCO_ADDRESS = 1
+const val SELECT_OTHER_ADDRESS = 2
+
 const val FNAME_FROM_SERVER = "from_server.xml"
 
 const val DEMO_LOCOS_FILE = "locos-demo.xml"
@@ -56,6 +59,7 @@ const val STATE_UNKNOWN = INVALID_INT
 
 const val SXMIN = 0
 const val SXMAX = 111   // highest channel number for selectrix (lowest is 0)
+const val SXMAX_USED = 106  // highest channel number for loco/turnout/signal/sensor use
 const val LIFECHECK_SECONDS = 10  // every 10 seconds check if server connection is alive
 
 const val DEFAULT_SXNET_PORT = "4104"  // string

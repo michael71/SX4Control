@@ -1,5 +1,6 @@
 package de.blankedv.sx4control.views
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -22,23 +23,20 @@ import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
 import de.blankedv.sx4control.model.MainApplication.Companion.sxData
 import org.jetbrains.anko.*
 import android.support.v7.widget.GridLayoutManager
+import android.view.LayoutInflater
 import de.blankedv.sx4control.*
-import de.blankedv.sx4control.R.id.tvData
 import de.blankedv.sx4control.adapter.ChannelListAdapter
 import de.blankedv.sx4control.adapter.SXD
 import de.blankedv.sx4control.controls.FunctionButton
 import de.blankedv.sx4control.util.LocoUtil
 import de.blankedv.sx4control.model.*
-import de.blankedv.sx4control.model.MainApplication.Companion.sxDataToEdit
-
-import de.blankedv.sx4control.views.Dialogs.openEditSXDataDialog
+import android.widget.TextView
 
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     NumberPicker.OnValueChangeListener {
 
-    private lateinit var builder: AlertDialog.Builder
-    private lateinit var tvAddr: TextView
+    private lateinit var exitProgramAlert: AlertDialog.Builder
     private lateinit var loco_icon: ImageView
     // all buttons are of type "FunctionButton" because this seems to render them to the exact same size
     private lateinit var stopBtn: FunctionButton
@@ -46,62 +44,58 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private lateinit var functionBtn: FunctionButton
     private lateinit var changeDirBtn: FunctionButton
     private lateinit var speedBar2: SeekBar
-
+    private lateinit var spAddress : Spinner
     private lateinit var channelView: RecyclerView
-    private lateinit var adapter : ChannelListAdapter
+    private lateinit var adapter: ChannelListAdapter
     private lateinit var mOptionsMenu: Menu
 
-    private var mToast: Toast? = null
     private var mHandler = Handler()  // used for UI Update timer
     private var mCounter = 0
 
     private var client: SXnetClientThread? = null
 
-    //private lateinit var sxSelectDialog : SelectSXDataDialog
+    private var sxDataToEdit = INVALID_INT     // used by edit-data-dialog and by onClickCheckbox functions
+    var tvData: TextView? = null       // used by edit-data-dialog and by onClickCheckbox functions
 
+    private val channelList = arrayListOf<SXD>()  // list of SX data pairs which gets actually displayed
+
+    private val locoAddressStrings = ArrayList<String>(10)
+    private lateinit var spinnerArrayAdapter : ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        builder = AlertDialog.Builder(this)
+        exitProgramAlert = AlertDialog.Builder(this)
 
-        tvAddr = findViewById<View>(R.id.tvAddr) as TextView
+        locoAddressStrings.addAll(arrayOf("25", "40", "29", "19", "97", "+ Loco"))
+        locoAddressStrings.sort()
+        spAddress = findViewById<View>(R.id.spAddress) as Spinner
+        spinnerArrayAdapter = ArrayAdapter(this, R.layout.spinner_item, locoAddressStrings)
+
         loco_icon = findViewById<View>(R.id.loco_icon) as ImageView
         stopBtn = findViewById<View>(R.id.stopBtn) as FunctionButton
         lampBtn = findViewById<View>(R.id.f0) as FunctionButton
         functionBtn = findViewById<View>(R.id.f1) as FunctionButton
         changeDirBtn = findViewById<View>(R.id.changeBtn) as FunctionButton
-
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
 
         channelView = find(R.id.channelView) as RecyclerView
         // add some space between the 2 columns
-        val spacing = 24 // px
-        val includeEdge = false
         channelView.addItemDecoration(
-            GridSpacingItemDecoration(
-                2,
-                spacing,
-                includeEdge
-            )
+            GridSpacingItemDecoration(2, 24, false)
         )
         channelView.layoutManager = GridLayoutManager(this, 2)
 
-        adapter =
-                ChannelListAdapter(
-                    channelList,
-                    object : ChannelListAdapter.OnItemClickListener {
-                        override fun invoke(sxd: SXD) {
-                            toast(sxd.sx.toString())
-                            openEditSXDataDialog(sxd , ctx)
-                        }
-                    })
+        adapter = ChannelListAdapter(
+            channelList,
+            object : ChannelListAdapter.OnItemClickListener {
+                override fun invoke(sxd: SXD) = editDataDialog(sxd)
+            })
         channelView.adapter = adapter
 
-        tvAddr.text = "A = $selLocoAddr"
         changeDirBtn.imageOff = BitmapFactory.decodeResource(getResources(), R.drawable.left3);
         changeDirBtn.imageOn = BitmapFactory.decodeResource(getResources(), R.drawable.right3);
         stopBtn.darken = true   // => not changing appearance
@@ -114,7 +108,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         }
 
         stopBtn.setOnClickListener {
-            // Perform action on click: stop
             LocoUtil.setSpeed(0)
             speedBar2.progress = 0
         }
@@ -122,20 +115,41 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         lampBtn.setOnClickListener { LocoUtil.toggleLamp() }
         functionBtn.setOnClickListener { LocoUtil.toggleFunction() }
 
-        builder = AlertDialog.Builder(this)
-        builder.setMessage("Are you sure you want to exit?")
+        exitProgramAlert = AlertDialog.Builder(this)
+        exitProgramAlert.setMessage("Programm beenden?")
             .setCancelable(false)
-            .setPositiveButton("Yes") { dialog, id ->
+            .setPositiveButton("Ja") { _, _ ->
                 shutdownSXClient()
                 mySleep(100)
                 finish()
             }
-            .setNegativeButton("No") { dialog, id -> dialog.cancel() }
+            .setNegativeButton("Nein") { dialog, _ -> dialog.cancel() }
 
-        tvAddr.setOnClickListener { addressPickerDialog() }
-       // adapter =
-        //        ChannelListAdapter(channelList, private val channelList = mutableListOf<String>("")
-       // channelView.adapter = adapter
+        spAddress.adapter = spinnerArrayAdapter
+
+        spAddress.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                toast("nichts selektiert") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                val sLoco = locoAddressStrings[p2]
+                toast(sLoco + " selected")
+                if (sLoco.contains("+")) {
+                    addressPickerDialog(SELECT_LOCO_ADDRESS)
+                } else {
+                    try {
+                        val a = locoAddressStrings[p2].toInt()
+                        selectNewLoco(a)
+
+                    } catch (e: Exception) {
+                        toast("kann " + sLoco + " nicht in Adresse umwandeln ")  // do nothing
+                    }
+                }
+            }
+
+        }
+
     }
 
     override fun onProgressChanged(
@@ -175,6 +189,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 val intent = Intent(this, Preferences::class.java)
                 startActivity(intent)
             }
+            R.id.action_add_channel -> {
+                addressPickerDialog(SELECT_OTHER_ADDRESS)
+            }
             R.id.action_about -> {
                 val intent = Intent(this, AboutActivity::class.java)
                 startActivity(intent)
@@ -188,7 +205,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 togglePower()
             }
             R.id.action_exit -> {
-                val alert = builder.create()
+                val alert = exitProgramAlert.create()
                 alert.show()
             }
         }
@@ -213,19 +230,29 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     override fun onResume() {
         super.onResume()
-        Log.i(TAG, "MainActivcity - onResume")
+        Log.i(TAG, "MainActivity - onResume")
         val prefs =
             PreferenceManager.getDefaultSharedPreferences(this)
-        if (selLocoAddr == INVALID_INT) {
-            selLocoAddr = prefs.getInt(
+
+        val tmpAddr = prefs.getInt(
                 KEY_LOCO_ADDR,
                 DEFAULT_LOCO
             )
             if (DEBUG)
                 Log.d(TAG, "loading lastLoco Adr from prefs - addr=$selLocoAddr")
+
+          // request update of loco data from SXnet
+        val addressPos = getSpinnerSelectionFromAddress(tmpAddr)
+        spAddress.setSelection(addressPos)
+        try {
+            selLocoAddr = (spAddress.getItemAtPosition(addressPos).toString()).toInt()
+        } catch (e : Exception) {
+            selLocoAddr = 40
+            spAddress.setSelection(getSpinnerSelectionFromAddress(40))  // TODO
+            Log.e(TAG, "could not convert spinner item to int value - using 40 as loco address")
         }
-        sendQ.offer("R $selLocoAddr")   // request update of loco data from SXnet
-        tvAddr.text = "A=$selLocoAddr"
+
+        sendQ.offer("R $selLocoAddr")
         MainApplication.addRelevantChan(selLocoAddr)
         //loco_icon!!.setImageBitmap(selLocoAddr.getIcon())
 
@@ -240,7 +267,17 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     }
 
-    // assertion kept in case of rotation during execution of this code
+    private fun getSpinnerSelectionFromAddress(a : Int) : Int {
+        // search for a matching spinner item
+        for (i in 0..(locoAddressStrings.size-1)) {
+            if ((locoAddressStrings.get(i)).equals(a.toString())) {
+                return i
+            }
+        }
+        return 0 // default
+    }
+
+
     private fun updateUI() {
         mCounter++
 
@@ -248,7 +285,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         // "At the moment, data binding is only for layout resources, not menu resources" (google)
         // and the implementation to "work around" this limitation looks very complicated, see
         // https://stackoverflow.com/questions/38660735/how-bind-android-databinding-to-menu
-        //setConnectionIcon()
 
         setPowerAndConnectionIcon()
         lampBtn.setON(LocoUtil.isLampOn())
@@ -259,33 +295,30 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             //speedBar.setSXSpeed(sxData[selLocoAddr])
             val speed = (sxData[selLocoAddr] and 0x1f)
             speedBar2.progress = speed
-            // Log.d(TAG,"sxD[L]=$speed")
-            tvAddr.setText("A = $selLocoAddr")
-        } else {
-            tvAddr.text = getString(R.string.noLocoSelected)
         }
 
         channelList.clear()
         for (i in 0..SXMAX) {
             val sx = sxData[i]
             if (relevantChans.contains(i) or (sx != 0)) {
-                channelList.add(
-                    SXD(
-                        i,
-                        sx
-                    )
-                )
+                channelList.add(SXD(i, sx))
             }
         }
 
-        adapter!!.notifyDataSetChanged()
+        adapter!!.notifyDataSetChanged()  // assertion kept in case of rotation during execution of this code
 
         mHandler.postDelayed({ updateUI() }, 500)
     }
 
+    private fun selectNewLoco(addr : Int) {
+        if( (addr <0) or (addr > SXMAX) ) return
+        selLocoAddr = addr
+        MainApplication.addRelevantChan(selLocoAddr)
+        sendQ.offer("R $selLocoAddr")
+    }
     // assertion kept in case of rotation during execution of this code
     private fun setPowerAndConnectionIcon() {
-          if (MainApplication.connectionIsAlive()) {
+        if (MainApplication.connectionIsAlive()) {
             mOptionsMenu!!.findItem(R.id.action_connect)?.setIcon(R.drawable.commok)
             when (globalPower) {
                 false -> {
@@ -367,36 +400,157 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     }
 
 
-    private fun addressPickerDialog() {
+    private fun addressPickerDialog(type: Int) {
         val dialogBuilder = AlertDialog.Builder(this)
         val dialogView = this.layoutInflater.inflate(R.layout.select_address, null)
-        val num = dialogView.findViewById<View>(R.id.numberPicker1) as NumberPicker
-        num.minValue = 1
-        num.maxValue = 99
-        num.value = selLocoAddr
+        val numE = dialogView.findViewById<View>(R.id.numberPickerE) as NumberPicker
+        val numZ = dialogView.findViewById<View>(R.id.numberPickerZ) as NumberPicker
+        val numH = dialogView.findViewById<View>(R.id.numberPickerH) as NumberPicker
+        numE.minValue = 0
+        numE.maxValue = 9
+        numZ.minValue = 0
+        numZ.maxValue = 9
+        numH.minValue = 0
+        numH.maxValue = 1
         dialogBuilder.setView(dialogView)
-        dialogBuilder.setTitle("Lok-Adresse auswählen")
-        dialogBuilder.setPositiveButton("Save") { dialog, btn ->
-            selLocoAddr = num.value
-            MainApplication.addRelevantChan(selLocoAddr)
-            sendQ.offer("R $selLocoAddr")
-            dialog.cancel()
+        if (type == SELECT_LOCO_ADDRESS) {
+            if (selLocoAddr >= 100) {
+                numH.value = 1
+                numE.value = selLocoAddr % 10
+                numZ.value = (selLocoAddr - 100) / 10
+            } else {
+                numE.value = selLocoAddr % 10
+                numZ.value = selLocoAddr / 10
+                numH.value = 0
+            }
+            dialogBuilder.setTitle("Lok-Adresse auswählen")
+            dialogBuilder.setPositiveButton("Speichern") { dialog, _ ->
+                val a = numE.value + 10* numZ.value + 100 * numH.value
+                if (a > SXMAX_USED) {
+                    toast("Fehler Adresse muss kleiner oder gleich 106 sein")
+                } else {
+                    if (!locoAddressStrings.contains(a.toString())) {
+                        locoAddressStrings.add(a.toString())
+                        locoAddressStrings.sort()
+                        spinnerArrayAdapter.notifyDataSetChanged()
+                    }
+                    spAddress.setSelection(getSpinnerSelectionFromAddress(a))
+                    selectNewLoco(a)
+                }
+                dialog.cancel()
+            }
+        } else {
+            numH.value = 0
+            numE.value = 0
+            numZ.value = 8
+            dialogBuilder.setTitle("zus. Adresse auswählen")
+            dialogBuilder.setPositiveButton("Hinzufügen") { dialog, _ ->
+                val a = numE.value + 10* numZ.value + 100 * numH.value
+                if (a > SXMAX_USED) {
+                    toast("Fehler Adresse muss kleiner oder gleich 106 sein")
+                } else {
+                    MainApplication.addRelevantChan(a)
+                }
+                dialog.cancel()
+            }
+
         }
-        dialogBuilder.setNegativeButton("Cancel") { dialog, btn ->
+        dialogBuilder.setNegativeButton("Zurück") { dialog, _ ->
             dialog.cancel()
         }
         val b = dialogBuilder.create()
         b.show()
     }
 
-    fun onCheckboxClicked(view: View) {
-        if (view is CheckBox) {
-           sxDataToEdit = Dialogs.onCheckboxClicked(view, sxDataToEdit)
-        }
-    }
-    companion object {
 
-        val channelList = arrayListOf<SXD>()
+    fun onCheckboxClicked(view: View) {
+        var d = sxDataToEdit
+        if (view is CheckBox) {
+            val ids =
+                intArrayOf(
+                    R.id.checkBox1, R.id.checkBox2, R.id.checkBox3, R.id.checkBox4,
+                    R.id.checkBox5, R.id.checkBox6, R.id.checkBox7, R.id.checkBox8
+                )
+            val checked: Boolean = view.isChecked
+            for (bit in 1..8) {  // "sx"-bits start at 1
+                if (view.id == ids.get(bit - 1)) {
+                    val bval = 1.shl(bit - 1)
+                    when (checked) {
+                        true -> {
+                            d = d or bval
+                        }    // set bit
+                        false -> {
+                            d = d and bval.inv()
+                        }   // clear bit
+                    }
+                }
+            }
+            Log.d(TAG, "new data = $d")
+            sxDataToEdit = d
+            tvData!!.text = sxDataToEdit.toString()
+        }
+
+
+    }
+
+    /** returns list of all 8 checkboxes for the 8 SX bits
+     *
+     */
+    private fun checkBoxesList(v: View): List<CheckBox> {
+        var cb1 = v.find(R.id.checkBox1) as CheckBox   // bit 1
+        var cb2 = v.find(R.id.checkBox2) as CheckBox
+        var cb3 = v.find(R.id.checkBox3) as CheckBox
+        var cb4 = v.find(R.id.checkBox4) as CheckBox
+        var cb5 = v.find(R.id.checkBox5) as CheckBox
+        var cb6 = v.find(R.id.checkBox6) as CheckBox
+        var cb7 = v.find(R.id.checkBox7) as CheckBox
+        var cb8 = v.find(R.id.checkBox8) as CheckBox   // bit 8
+        return listOf(cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8)
+    }
+
+    /** edit a single byte in sxData array and send update to SXnet
+     *
+     */
+    fun editDataDialog(sxd: SXD) {
+
+        val selAddress = sxd.sx
+        sxDataToEdit = sxd.data
+        val editDataView =
+            LayoutInflater.from(ctx).inflate(R.layout.sxdata_dialog, null)
+
+        val tvEditAddr = editDataView.find(R.id.tvEditAddress) as TextView
+        tvData = editDataView.find(R.id.tvEditData) as TextView
+
+        var cb = checkBoxesList(editDataView)
+
+        tvEditAddr.text = "Addr=$selAddress D="
+        tvData!!.text = sxDataToEdit.toString()
+
+        for (bit in 1..8) {
+            if (sxDataToEdit and (1 shl (bit - 1)) != 0) cb.elementAt(bit - 1).setChecked(true)
+        }
+
+        val editDialog = android.app.AlertDialog.Builder(ctx)
+            .setMessage("Daten verändern?")
+            .setCancelable(false)
+            .setView(editDataView)
+            .setPositiveButton("Speichern") { dialog, id ->
+                sxData[selAddress] = sxDataToEdit
+                sendQ.offer("S $selAddress $sxDataToEdit")
+                Log.d(TAG, "setting a=$selAddress to d=$sxDataToEdit")
+                dialog.dismiss()
+            }
+            .setNegativeButton("Zurück") { dialog, id ->
+                dialog.dismiss()
+            }
+            .create()
+        editDialog.show()
+
+
+    }
+
+
+    companion object {
 
 
     }

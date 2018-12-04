@@ -6,6 +6,8 @@ import android.os.Handler
 import android.os.Message
 import android.provider.Settings
 import android.util.Log
+import android.view.View
+import android.widget.TextView
 import org.jetbrains.anko.toast
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
@@ -141,8 +143,6 @@ class MainApplication : Application() {
         var sxData = IntArray(SXMAX + 1)
         @Volatile
         var selLocoAddr = INVALID_INT
-
-        var sxDataToEdit = INVALID_INT
 
         var timeOfLastReceivedMessage = 0L
 

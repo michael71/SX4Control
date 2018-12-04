@@ -5,8 +5,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="de.blankedv.sx4control.views.MainActivity" android:background="@android:color/background_dark">
-    <!--android:background="@android:color/background_dark"> -->
+        tools:context="de.blankedv.sx4control.views.MainActivity"
+        android:background="@android:color/background_dark">
     <SeekBar
             android:id="@+id/speedBar2"
             android:layout_width="fill_parent"
@@ -19,14 +19,14 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"
             android:max="31"
-            android:background="@drawable/rounded_view" />
+            android:background="@drawable/rounded_view"/>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   android:layout_width="fill_parent"
                   android:layout_height="0px"
                   android:layout_weight="3"
                   android:layout_margin="0dp"
-                  android:background="@android:color/background_dark"
-                  android:orientation="horizontal">
+                  android:orientation="horizontal"
+                  android:background="@android:color/background_dark">
         <ImageView
                 android:id="@+id/loco_icon"
                 android:layout_width="0px"
@@ -35,16 +35,16 @@
                 android:layout_weight="6"
                 android:src="@drawable/genloco"
                 android:contentDescription="@string/locoicon"/>
-
-        <TextView
-                android:id="@+id/tvAddr"
+        <Spinner
+                android:id="@+id/spAddress"
                 android:layout_width="0px"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="4"
-                android:textColor="@color/colorPrimary"
                 android:gravity="center"
-                android:textSize="24sp"
+                android:layout_gravity="center"
+                android:textSize="30sp"
                 android:contentDescription="@string/loco_address"/>
+
     </LinearLayout>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   android:layout_width="fill_parent"
