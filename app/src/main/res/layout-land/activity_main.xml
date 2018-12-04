@@ -5,14 +5,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        tools:context="de.blankedv.sx4control.MainActivity" android:background="@android:color/background_dark">
+        tools:context="de.blankedv.sx4control.views.MainActivity" android:background="@android:color/background_dark">
     <!--android:background="@android:color/background_dark"> -->
     <LinearLayout
             android:layout_width="0px"
             android:layout_weight="4"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            tools:context="de.blankedv.sx4control.MainActivity" android:background="@android:color/background_dark">
+            tools:context="de.blankedv.sx4control.views.MainActivity" android:background="@android:color/background_dark">
         <SeekBar
                 android:id="@+id/speedBar2"
                 android:layout_width="match_parent"
@@ -57,21 +57,21 @@
                       android:layout_weight="2.5"
                       android:background="@android:color/background_dark"
                       android:orientation="horizontal">
-            <de.blankedv.sx4control.FunctionButton
+            <de.blankedv.sx4control.controls.FunctionButton
                     android:id="@+id/f0"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"
                     android:layout_weight="25"
                     android:text="@string/f0"
                     android:textSize="22sp"/>
-            <de.blankedv.sx4control.FunctionButton
+            <de.blankedv.sx4control.controls.FunctionButton
                     android:id="@+id/f1"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"
                     android:layout_weight="25"
                     android:text="@string/f1"
                     android:textSize="22sp"/>
-            <de.blankedv.sx4control.FunctionButton
+            <de.blankedv.sx4control.controls.FunctionButton
                     android:id="@+id/changeBtn"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"
@@ -79,7 +79,7 @@
                     android:src="@drawable/right3"
                     android:textSize="22sp"
                     android:contentDescription="@string/direction"/>
-            <de.blankedv.sx4control.FunctionButton
+            <de.blankedv.sx4control.controls.FunctionButton
                     android:id="@+id/stopBtn"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"

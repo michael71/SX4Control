@@ -1,11 +1,13 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.views
 
-import android.app.AlertDialog
+import android.app.Activity
+
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
@@ -14,15 +16,22 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import de.blankedv.sx4control.MainApplication.Companion.relevantChans
-import de.blankedv.sx4control.MainApplication.Companion.globalPower
-import de.blankedv.sx4control.MainApplication.Companion.pauseTimer
-import de.blankedv.sx4control.MainApplication.Companion.selLocoAddr
-import de.blankedv.sx4control.MainApplication.Companion.sendQ
-import de.blankedv.sx4control.MainApplication.Companion.sxData
+import de.blankedv.sx4control.model.MainApplication.Companion.relevantChans
+import de.blankedv.sx4control.model.MainApplication.Companion.globalPower
+import de.blankedv.sx4control.model.MainApplication.Companion.pauseTimer
+import de.blankedv.sx4control.model.MainApplication.Companion.selLocoAddr
+import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
+import de.blankedv.sx4control.model.MainApplication.Companion.sxData
 import org.jetbrains.anko.*
 import android.support.v7.widget.GridLayoutManager
-
+import de.blankedv.sx4control.*
+import de.blankedv.sx4control.adapter.ChannelListAdapter
+import de.blankedv.sx4control.adapter.SXD
+import de.blankedv.sx4control.controls.FunctionButton
+import de.blankedv.sx4control.util.LocoUtil
+import de.blankedv.sx4control.model.*
+import de.blankedv.sx4control.model.MainApplication.Companion.selSXData
+import de.blankedv.sx4control.views.Dialogs.openEditSXDataDialog
 
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
@@ -48,6 +57,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     private var client: SXnetClientThread? = null
 
+    //private lateinit var sxSelectDialog : SelectSXDataDialog
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,15 +81,24 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         // add some space between the 2 columns
         val spacing = 24 // px
         val includeEdge = false
-        channelView.addItemDecoration(GridSpacingItemDecoration(2, spacing, includeEdge))
+        channelView.addItemDecoration(
+            GridSpacingItemDecoration(
+                2,
+                spacing,
+                includeEdge
+            )
+        )
         channelView.layoutManager = GridLayoutManager(this, 2)
 
-        adapter = ChannelListAdapter(channelList,
-            object : ChannelListAdapter.OnItemClickListener {
-                override fun invoke(sxd: SXD) {
-                    toast(sxd.sx.toString())
-                }
-            })
+        adapter =
+                ChannelListAdapter(
+                    channelList,
+                    object : ChannelListAdapter.OnItemClickListener {
+                        override fun invoke(sxd: SXD) {
+                            toast(sxd.sx.toString())
+                            openEditSXDataDialog(sxd , ctx)
+                        }
+                    })
         channelView.adapter = adapter
 
         tvAddr.text = "A = $selLocoAddr"
@@ -197,7 +217,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         val prefs =
             PreferenceManager.getDefaultSharedPreferences(this)
         if (selLocoAddr == INVALID_INT) {
-            selLocoAddr = prefs.getInt(KEY_LOCO_ADDR, DEFAULT_LOCO)
+            selLocoAddr = prefs.getInt(
+                KEY_LOCO_ADDR,
+                DEFAULT_LOCO
+            )
             if (DEBUG)
                 Log.d(TAG, "loading lastLoco Adr from prefs - addr=$selLocoAddr")
         }
@@ -246,7 +269,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         for (i in 0..SXMAX) {
             val sx = sxData[i]
             if (relevantChans.contains(i) or (sx != 0)) {
-                channelList.add(SXD(i,sx))
+                channelList.add(
+                    SXD(
+                        i,
+                        sx
+                    )
+                )
             }
         }
 
@@ -361,6 +389,71 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         b.show()
     }
 
+    fun onCheckboxClicked(view: View) {
+        if (view is CheckBox) {
+            val checked: Boolean = view.isChecked
+
+            when (view.id) {
+                R.id.checkBox1 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x01
+                    } else {
+                        selSXData = selSXData and 0x01.inv()
+                    }
+                 }
+                R.id.checkBox2 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x02
+                    } else {
+                        selSXData = selSXData and 0x02.inv()
+                    }
+                }
+                R.id.checkBox3 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x04
+                    } else {
+                        selSXData = selSXData and 0x04.inv()
+                    }
+                }
+                R.id.checkBox4 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x08
+                    } else {
+                        selSXData = selSXData and 0x08.inv()
+                    }
+                }
+                R.id.checkBox5 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x10
+                    } else {
+                        selSXData = selSXData and 0x10.inv()
+                    }
+                }
+                R.id.checkBox6 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x20
+                    } else {
+                        selSXData = selSXData and 0x20.inv()
+                    }
+                }
+                R.id.checkBox7 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x40
+                    } else {
+                        selSXData = selSXData and 0x40.inv()
+                    }
+                }
+                R.id.checkBox8 -> {
+                    if (checked) {
+                        selSXData = selSXData or 0x80
+                    } else {
+                        selSXData = selSXData and 0x80.inv()
+                    }
+                }
+            }
+            Log.d(TAG,"new selSXData = $selSXData")
+        }
+    }
     companion object {
 
         val channelList = arrayListOf<SXD>()

@@ -1,10 +1,12 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.util
 
 import android.graphics.Bitmap
 import android.util.Log
-import de.blankedv.sx4control.MainApplication.Companion.selLocoAddr
-import de.blankedv.sx4control.MainApplication.Companion.sendQ
-import de.blankedv.sx4control.MainApplication.Companion.sxData
+import de.blankedv.sx4control.model.MainApplication.Companion.selLocoAddr
+import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
+import de.blankedv.sx4control.model.MainApplication.Companion.sxData
+import de.blankedv.sx4control.model.INVALID_INT
+import de.blankedv.sx4control.model.TAG
 
 class LocoUtil {
 

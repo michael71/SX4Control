@@ -1,21 +1,20 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.views
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.preference.EditTextPreference
-import android.preference.ListPreference
 import android.preference.PreferenceActivity
 import android.preference.PreferenceManager
+import de.blankedv.sx4control.R
+import de.blankedv.sx4control.model.KEY_IP
 
 class Preferences : PreferenceActivity(), OnSharedPreferenceChangeListener {
 
-
     private var ipPref: EditTextPreference? = null
+
     private val portPref: EditTextPreference? = null
     //private ListPreference configFilenamePref, locosFilenamePref;
-
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,19 +23,16 @@ class Preferences : PreferenceActivity(), OnSharedPreferenceChangeListener {
 
         ipPref = preferenceScreen.findPreference(KEY_IP) as EditTextPreference
         //relFontSize = (ListPreference) getPreferenceScreen().findPreference(KEY_FONT_FACTOR);
-
     }
 
     override fun onSharedPreferenceChanged(
         sharedPreferences: SharedPreferences,
         key: String
     ) {
-
         // Let's do something if a preference value changes
         if (key == KEY_IP) {
             ipPref!!.summary = "= " + sharedPreferences.getString(KEY_IP, "")!!
         }
-
     }
 
     override fun onResume() {
@@ -57,7 +53,5 @@ class Preferences : PreferenceActivity(), OnSharedPreferenceChangeListener {
         // Unregister the listener whenever a key changes
         preferenceScreen.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
     }
-
-
 }
 

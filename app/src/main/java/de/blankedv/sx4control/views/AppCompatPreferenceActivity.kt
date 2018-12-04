@@ -1,4 +1,4 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.views
 
 import android.content.res.Configuration
 import android.os.Bundle

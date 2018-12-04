@@ -16,7 +16,7 @@
     along with LanbahnThrottle.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-package de.blankedv.sx4control
+package de.blankedv.sx4control.controls
 
 import android.content.Context
 import android.graphics.Bitmap

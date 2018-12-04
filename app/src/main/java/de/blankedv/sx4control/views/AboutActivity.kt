@@ -1,4 +1,4 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.views
 
 
 import android.app.Activity
@@ -11,7 +11,8 @@ import android.widget.Button
 import android.widget.TextView
 
 
-import de.blankedv.sx4control.MainApplication.Companion.connString
+import de.blankedv.sx4control.model.MainApplication.Companion.connString
+import de.blankedv.sx4control.R
 
 
 class AboutActivity : Activity() {

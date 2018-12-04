@@ -2,7 +2,7 @@
 // to make constants usable in JAVA via  Constants.GLOBAL_NUMBER ...
 @file:JvmName("Constants")
 
-package de.blankedv.sx4control
+package de.blankedv.sx4control.model
 
 const val DEBUG = true // false for release-apk
 const val TAG = "SX4Control"

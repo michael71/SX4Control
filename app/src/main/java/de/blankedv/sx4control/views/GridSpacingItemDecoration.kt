@@ -1,4 +1,4 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.views
 
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView

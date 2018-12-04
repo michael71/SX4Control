@@ -1,4 +1,4 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.model
 
 import android.content.Context
 import android.os.Message
@@ -11,9 +11,9 @@ import java.io.PrintWriter
 import java.net.InetSocketAddress
 import java.net.Socket
 
-import de.blankedv.sx4control.MainApplication.Companion.sendQ
-import de.blankedv.sx4control.MainApplication.Companion.handler
-import de.blankedv.sx4control.MainApplication.Companion.connString
+import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
+import de.blankedv.sx4control.model.MainApplication.Companion.handler
+import de.blankedv.sx4control.model.MainApplication.Companion.connString
 
 /**
  * communicates with the SX3-PC server program (usually on port 4104)

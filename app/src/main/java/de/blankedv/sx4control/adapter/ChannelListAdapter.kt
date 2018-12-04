@@ -1,12 +1,13 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.adapter
 
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
+import de.blankedv.sx4control.R
+import de.blankedv.sx4control.util.LocoUtil
 
 
 import org.jetbrains.anko.find
@@ -15,7 +16,8 @@ data class SXD (val sx: Int, val data: Int)
 
 
 class ChannelListAdapter(private val sxList: ArrayList<SXD>,
-                           private val itemClick: ChannelListAdapter.OnItemClickListener) :
+                         private val itemClick: OnItemClickListener
+) :
         RecyclerView.Adapter<ChannelListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

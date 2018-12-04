@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- <uses-permission android:name="android.permission.VIBRATE"/>-->
     <application
-            android:name=".MainApplication"
+            android:name=".model.MainApplication"
             android:allowBackup="true"
             android:icon="@mipmap/sx4_ico"
             android:label="@string/app_name"
@@ -22,7 +22,7 @@
         android:hardwareAccelerated="true">
 
         <activity
-                android:name=".MainActivity"
+                android:name=".views.MainActivity"
                 android:label="@string/app_name"
                 android:theme="@style/AppTheme">
             <intent-filter>
@@ -42,20 +42,20 @@
             </intent-filter>
         </activity>
         <activity
-                android:name="de.blankedv.sx4control.AboutActivity"
+                android:name="de.blankedv.sx4control.views.AboutActivity"
                 android:label="@string/title_about_info"
-                android:parentActivityName="de.blankedv.sx4control.MainActivity">
+                android:parentActivityName="de.blankedv.sx4control.views.MainActivity">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="de.blankedv.sx4control.MainActivity" />
+                    android:value="de.blankedv.sx4control.views.MainActivity" />
         </activity>
         <activity
-                android:name=".Preferences"
+                android:name=".views.Preferences"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName=".MainActivity">
+                android:parentActivityName=".views.MainActivity">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="de.blankedv.sx4control.MainActivity"/>
+                    android:value="de.blankedv.sx4control.views.MainActivity"/>
         </activity> -->
     </application>
 

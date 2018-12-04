@@ -1,4 +1,4 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.controls
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,7 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.support.v7.widget.AppCompatButton
 import android.util.AttributeSet
-import de.blankedv.sx4control.MainApplication.Companion.globalPower
+import de.blankedv.sx4control.model.MainApplication.Companion.globalPower
 
 
 /**

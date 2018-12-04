@@ -11,7 +11,7 @@
     <string name="copyrightString" translatable="false">(c) 2017-2018 Michael Blank - opensx.net</string>
     <string name="moreInfoString" translatable="false">for more info see: https://opensx.net</string>
     <string name="aboutString" translatable="false">SX4 Control/Throttle für Android - zur Verwendung mit dem SX4 Programm</string>
-    <string name="cancel" translatable="false">cancel</string>
+    <string name="cancel" translatable="false">Cancel</string>
     <string name="action_about" translatable="false">About / Info</string>
     <string name="action_reconnect" translatable="false">Reconnect to Server</string>
     <string name="title_about_info" translatable="false">About / Info</string>
@@ -27,4 +27,5 @@
     <string name="noLocoSelected" translatable="false">No Loco</string>
     <string name="power" translatable="false">Power</string>
     <string name="connect" translatable="false">Connect</string>
+    <string name="set" translatable="false">Set Value</string>
 </resources>

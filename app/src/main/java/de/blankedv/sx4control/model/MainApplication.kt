@@ -1,12 +1,12 @@
-package de.blankedv.sx4control
+package de.blankedv.sx4control.model
 
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Handler
 import android.os.Message
-import android.preference.PreferenceManager
 import android.provider.Settings
 import android.util.Log
+import org.jetbrains.anko.toast
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 
@@ -68,6 +68,9 @@ class MainApplication : Application() {
 
                     TYPE_ERROR_MSG -> {
                         if (DEBUG) Log.d(TAG, "error msg $chan $data")
+                        if (msg.obj != null) {
+                            toast(msg.obj.toString())
+                        }
                     }
 
                 }
@@ -138,6 +141,10 @@ class MainApplication : Application() {
         var sxData = IntArray(SXMAX + 1)
         @Volatile
         var selLocoAddr = INVALID_INT
+        @Volatile
+        var selSXAddress = INVALID_INT
+        @Volatile
+        var selSXData = INVALID_INT
 
         var timeOfLastReceivedMessage = 0L
 
