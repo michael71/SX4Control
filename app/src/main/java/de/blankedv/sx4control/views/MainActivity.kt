@@ -2,6 +2,7 @@ package de.blankedv.sx4control.views
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -136,15 +137,17 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
                 val sLoco = locoAddressStringList[p2]
-                toast(sLoco + " selected")
                 if (sLoco.contains("+")) {
                     startLocoAddressPickerDialog()
                 } else {
                     try {
-                        val a = locoAddressStringList[p2].toInt()
-                        if (a != selLocoAddr)selectNewLoco(a)
+                        val addr = locoAddressStringList[p2].toInt()
+                        if (addr != selLocoAddr) {
+                            selectNewLoco(addr)
+                        }
                     } catch (e: Exception) {
-                        toast("kann " + sLoco + " nicht in Adresse umwandeln ")  // do nothing
+                        Log.e(TAG,"kann $sLoco (spinner) nicht in Adresse umwandeln ")
+                        toast("kann $sLoco nicht in Adresse umwandeln ")  // do nothing
                     }
                 }
             }
@@ -224,8 +227,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 if (isUsableSXAddress(addr!!)) {
                     if (addr != selLocoAddr) {
                         Log.d(TAG, "NEW LOCO ADDR=$addr from select-dialog")
-                        selectNewLoco(addr)
-                        loadLocoBitmap(addr)
+                        selectNewLoco(addr)   // TODO check redundancy
                         updateAddressSpinnerList()
                     }
                 } else {
@@ -247,6 +249,32 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             Log.e(TAG,"onActivityResult: other requestCode=$requestCode")
         }
     }
+    /** returned by Android after user has given permissions */
+    override fun onRequestPermissionsResult(requestCode: Int,
+                             permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            READ_STORAGE_PERMISSION_REQUEST -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // finally, we got the permission
+                    Log.d(TAG, "read permission granted in the meantime")
+                } else {
+                    // permission denied, boo! Disable the functionality that depends on this permission.
+                    LocoBitmap.readDisabled = true
+                    Log.e(TAG, "NO read permission granted, disabling locoBitmap read forever")
+                }
+                return
+            }
+
+// Add other 'when' lines to check for other
+// permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
+    }
+
+
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "MainActivcity - onPause")
@@ -261,12 +289,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         Log.i(TAG, "MainActivity - onResume")
 
         getLocoAddresses()
+        loadLocoBitmap(selLocoAddr)
         updateAddressSpinnerList()
         spinnerArrayAdapter.notifyDataSetChanged()
 
-
         MainApplication.addRelevantChan(selLocoAddr)
-        // loadLocoBitmap(selLocoAddr)
 
         startSXNetCommunication()
         sendQ.offer("R $selLocoAddr")    // sendQ was cleared when starting sxnet-comm
@@ -338,6 +365,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private fun selectNewLoco(addr : Int) {
         if(!isUsableSXAddress(addr)) return
         selLocoAddr = addr
+        loadLocoBitmap(selLocoAddr)
         addNewLocoToAddressList(addr)
         MainApplication.addRelevantChan(selLocoAddr)
         sendQ.offer("R $selLocoAddr")

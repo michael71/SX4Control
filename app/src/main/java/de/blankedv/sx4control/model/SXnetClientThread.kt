@@ -49,7 +49,9 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
     }
 
     fun shutdown() {
+        if (DEBUG) Log.d(TAG, "SXnetClientThread shutdown called.")
         shutdownFlag = true
+        this.interrupt()
     }
 
     override fun run() {
@@ -121,7 +123,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
 
 
     private fun connect() {
-        if (DEBUG) Log.d(TAG, "SXnet trying conn to - $ip:$port")
+        if (DEBUG) Log.d(TAG, "SXnetClientThread trying conn to - $ip:$port")
         try {
             val socketAddress = InetSocketAddress(ip, port)
 

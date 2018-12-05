@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
@@ -74,7 +75,7 @@ class MainApplication : Application() {
                     TYPE_ERROR_MSG -> {
                         if (DEBUG) Log.d(TAG, "error msg $chan $data")
                         if (msg.obj != null) {
-                            toast(msg.obj.toString())
+                            longToast(msg.obj.toString())
                         }
                     }
 
