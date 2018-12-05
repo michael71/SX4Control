@@ -31,6 +31,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
     @Volatile
     private var clientTerminated: Boolean = false
     private var lastReceived: Long = 0
+    private var commAlive: Long = 0
 
     private var shutdownFlag: Boolean = false
     private var socket: Socket? = null
@@ -44,6 +45,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
         clientTerminated = false
         shutdownFlag = false
         lastReceived = System.currentTimeMillis() + 5000  // initialize
+        commAlive = System.currentTimeMillis() + 5000  // initialize
     }
 
     fun shutdown() {
@@ -57,7 +59,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
         connect()
 
 
-        while (shutdownFlag == false && !Thread.currentThread().isInterrupted) {
+        while (!shutdownFlag && !Thread.currentThread().isInterrupted) {
             try {
                 if (`in` != null && `in`!!.ready()) {
                     val in1 = `in`!!.readLine()
@@ -69,6 +71,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                         // sends feedback message  XL 'addr' 'data' (or INVALID_INT) back to mobile device
                     }
                     lastReceived = System.currentTimeMillis()
+                    commAlive = System.currentTimeMillis()
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "ERROR: reading from socket - " + e.message)
@@ -96,6 +99,11 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                 handler!!.sendMessage(m)  // send SX data to UI Thread via Message
                 lastReceived = System.currentTimeMillis()  // send this msg only every 10 secs
             }
+
+            // automatic shutdown after 60 secs without message
+            //if (System.currentTimeMillis() - commAlive > 60 * 1000) {
+            //    shutdownFlag = true
+            //}
         }
 
         clientTerminated = true

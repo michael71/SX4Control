@@ -10,14 +10,16 @@
     <string name="versionUnknown" translatable="false">version unknown</string>
     <string name="copyrightString" translatable="false">(c) 2017-2018 Michael Blank - opensx.net</string>
     <string name="moreInfoString" translatable="false">for more info see: https://opensx.net</string>
-    <string name="aboutString" translatable="false">SX4 Control/Throttle für Android - zur Verwendung mit dem SX4 Programm</string>
+    <string name="aboutString" translatable="false">SX4 Control/Throttle für Android - zur Verwendung mit dem SX4
+        Programm
+    </string>
     <string name="cancel" translatable="false">Cancel</string>
     <string name="action_about" translatable="false">About / Info</string>
     <string name="action_reconnect" translatable="false">Reconnect to Server</string>
     <string name="title_about_info" translatable="false">About / Info</string>
     <string name="sxnet_server_settings" translatable="false">SXnet Server Settings</string>
-    <string name="stop_loco"  translatable="false">STOP</string>
-    <string name="enable_power_control"  translatable="false">Enable Global Power On/Off Control</string>
+    <string name="stop_loco" translatable="false">STOP</string>
+    <string name="enable_power_control" translatable="false">Enable Global Power On/Off Control</string>
     <string name="f0" translatable="false">F0</string>
     <string name="f1" translatable="false">F1</string>
     <string name="locoicon" translatable="false">locoIcon</string>
@@ -28,4 +30,5 @@
     <string name="power" translatable="false">Power</string>
     <string name="connect" translatable="false">Connect</string>
     <string name="set" translatable="false">Set Value</string>
+    <string name="title_activity_select_address_dialog">SelectAddressDialog</string>
 </resources>

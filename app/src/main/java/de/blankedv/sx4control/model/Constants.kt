@@ -19,11 +19,16 @@ const val KEY_ALLOW_POWER_CONTROL = "enablePowerControlPref"
 const val SXNET_PORT = 4104
 const val SXNET_START_IP = "192.168.178.29"
 
-const val KEY_LOCO_ADDR = "lastLocoAddr"
-const val DEFAULT_LOCO = 25
+const val KEY_LOCO_ADDR = "locoAddrPref"
+const val KEY_LOCO_ADDR_LIST = "locoAddrListPref"
 
-const val SELECT_LOCO_ADDRESS = 1
-const val SELECT_OTHER_ADDRESS = 2
+const val PICK_LOCO_ADDRESS_REQUEST = 1
+const val PICK_OTHER_ADDRESS_REQUEST = 2
+const val READ_STORAGE_PERMISSION_REQUEST = 4
+const val RESULT_SEL_ADDRESS = "selected_address"
+
+
+const val DIRECTORY = "/sx4control/" // with leading and trailing slash !!
 
 const val FNAME_FROM_SERVER = "from_server.xml"
 

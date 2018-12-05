@@ -1,8 +1,9 @@
 package de.blankedv.sx4control.views
 
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
@@ -31,7 +32,7 @@ import de.blankedv.sx4control.controls.FunctionButton
 import de.blankedv.sx4control.util.LocoUtil
 import de.blankedv.sx4control.model.*
 import android.widget.TextView
-
+import de.blankedv.sx4control.model.MainApplication.Companion.isUsableSXAddress
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     NumberPicker.OnValueChangeListener {
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private lateinit var functionBtn: FunctionButton
     private lateinit var changeDirBtn: FunctionButton
     private lateinit var speedBar2: SeekBar
-    private lateinit var spAddress : Spinner
+    private lateinit var spinnerLocoAddress : Spinner
     private lateinit var channelView: RecyclerView
     private lateinit var adapter: ChannelListAdapter
     private lateinit var mOptionsMenu: Menu
@@ -59,7 +60,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     private val channelList = arrayListOf<SXD>()  // list of SX data pairs which gets actually displayed
 
-    private val locoAddressStrings = ArrayList<String>(10)
+    private var locoAddressList = ArrayList<Int>(10)
+    private var locoAddressStringList = ArrayList<String>(10)
     private lateinit var spinnerArrayAdapter : ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,10 +71,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
         exitProgramAlert = AlertDialog.Builder(this)
 
-        locoAddressStrings.addAll(arrayOf("25", "40", "29", "19", "97", "+ Loco"))
-        locoAddressStrings.sort()
-        spAddress = findViewById<View>(R.id.spAddress) as Spinner
-        spinnerArrayAdapter = ArrayAdapter(this, R.layout.spinner_item, locoAddressStrings)
+        spinnerLocoAddress = findViewById<View>(R.id.spAddress) as Spinner
+        locoAddressStringList = arrayListOf("-?-")   // will be updated in onResume
+        spinnerArrayAdapter = ArrayAdapter(this, R.layout.spinner_item, locoAddressStringList)
 
         loco_icon = findViewById<View>(R.id.loco_icon) as ImageView
         stopBtn = findViewById<View>(R.id.stopBtn) as FunctionButton
@@ -82,12 +83,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         speedBar2 = findViewById<View>(R.id.speedBar2) as SeekBar
         speedBar2.setOnSeekBarChangeListener(this)
 
+
         channelView = find(R.id.channelView) as RecyclerView
-        // add some space between the 2 columns
+        channelView.layoutManager = GridLayoutManager(this, 2)
         channelView.addItemDecoration(
+            // add some space between the 2 columns
             GridSpacingItemDecoration(2, 24, false)
         )
-        channelView.layoutManager = GridLayoutManager(this, 2)
 
         adapter = ChannelListAdapter(
             channelList,
@@ -125,23 +127,22 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
             }
             .setNegativeButton("Nein") { dialog, _ -> dialog.cancel() }
 
-        spAddress.adapter = spinnerArrayAdapter
+        spinnerLocoAddress.adapter = spinnerArrayAdapter
 
-        spAddress.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinnerLocoAddress.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(p0: AdapterView<*>?) {
                 toast("nichts selektiert") //To change body of created functions use File | Settings | File Templates.
             }
 
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                val sLoco = locoAddressStrings[p2]
+                val sLoco = locoAddressStringList[p2]
                 toast(sLoco + " selected")
                 if (sLoco.contains("+")) {
-                    addressPickerDialog(SELECT_LOCO_ADDRESS)
+                    startLocoAddressPickerDialog()
                 } else {
                     try {
-                        val a = locoAddressStrings[p2].toInt()
-                        selectNewLoco(a)
-
+                        val a = locoAddressStringList[p2].toInt()
+                        if (a != selLocoAddr)selectNewLoco(a)
                     } catch (e: Exception) {
                         toast("kann " + sLoco + " nicht in Adresse umwandeln ")  // do nothing
                     }
@@ -190,7 +191,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 startActivity(intent)
             }
             R.id.action_add_channel -> {
-                addressPickerDialog(SELECT_OTHER_ADDRESS)
+                val intent = Intent(this, SelectAddressDialog::class.java)
+                intent.action = "monitor"
+                startActivityForResult(intent, PICK_OTHER_ADDRESS_REQUEST)
             }
             R.id.action_about -> {
                 val intent = Intent(this, AboutActivity::class.java)
@@ -212,18 +215,43 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         return true
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        // Check which request we're responding to
+        if (requestCode == PICK_LOCO_ADDRESS_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == Activity.RESULT_OK) {
+                val addr = data?.getIntExtra(RESULT_SEL_ADDRESS, INVALID_INT)
+                if (isUsableSXAddress(addr!!)) {
+                    if (addr != selLocoAddr) {
+                        Log.d(TAG, "NEW LOCO ADDR=$addr from select-dialog")
+                        selectNewLoco(addr)
+                        loadLocoBitmap(addr)
+                        updateAddressSpinnerList()
+                    }
+                } else {
+                    toast("Fehler Adresse muss kleiner oder gleich $SXMAX_USED sein")
+                }
+            }
+        } else if (requestCode == PICK_OTHER_ADDRESS_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == Activity.RESULT_OK) {
+                val addr = data?.getIntExtra(RESULT_SEL_ADDRESS, INVALID_INT)
+                if (isUsableSXAddress(addr!!))  {
+                    Log.d(TAG, "neue Monitor-Adresse $addr from select-dialog")
+                    MainApplication.addRelevantChan(addr)
+                } else {
+                    toast("Fehler Adresse muss kleiner oder gleich $SXMAX_USED sein")
+                }
+            }
+        } else {
+            Log.e(TAG,"onActivityResult: other requestCode=$requestCode")
+        }
+    }
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "MainActivcity - onPause")
-        // store current loco data including speed etc
-        val prefs = PreferenceManager
-            .getDefaultSharedPreferences(this)
-        val editor = prefs.edit()
-        Log.d(TAG, "saveCurrentLoco")
-        // generic
-        val adr = selLocoAddr
-        editor.putInt(KEY_LOCO_ADDR, adr)  // last used loco address
-        editor.apply()
+        // store current loco data + the complete locoList
+        saveLocoAddresses()
 
         pauseTimer = true
     }
@@ -231,32 +259,18 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "MainActivity - onResume")
-        val prefs =
-            PreferenceManager.getDefaultSharedPreferences(this)
 
-        val tmpAddr = prefs.getInt(
-                KEY_LOCO_ADDR,
-                DEFAULT_LOCO
-            )
-            if (DEBUG)
-                Log.d(TAG, "loading lastLoco Adr from prefs - addr=$selLocoAddr")
+        getLocoAddresses()
+        updateAddressSpinnerList()
+        spinnerArrayAdapter.notifyDataSetChanged()
 
-          // request update of loco data from SXnet
-        val addressPos = getSpinnerSelectionFromAddress(tmpAddr)
-        spAddress.setSelection(addressPos)
-        try {
-            selLocoAddr = (spAddress.getItemAtPosition(addressPos).toString()).toInt()
-        } catch (e : Exception) {
-            selLocoAddr = 40
-            spAddress.setSelection(getSpinnerSelectionFromAddress(40))  // TODO
-            Log.e(TAG, "could not convert spinner item to int value - using 40 as loco address")
-        }
 
-        sendQ.offer("R $selLocoAddr")
         MainApplication.addRelevantChan(selLocoAddr)
-        //loco_icon!!.setImageBitmap(selLocoAddr.getIcon())
+        // loadLocoBitmap(selLocoAddr)
 
         startSXNetCommunication()
+        sendQ.offer("R $selLocoAddr")    // sendQ was cleared when starting sxnet-comm
+
         mHandler.postDelayed({ updateUI() }, 100)
         pauseTimer = false
     }
@@ -267,10 +281,22 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     }
 
+    private fun loadLocoBitmap(addr : Int) {
+        val fileName = addr.toString() + ".png"
+        val icon = LocoBitmap.read(fileName, ctx)
+
+        if (icon == null) {
+            val genLocoBitmap = resources.getDrawable(R.drawable.genloco)
+            loco_icon.setImageDrawable(genLocoBitmap)
+        } else {
+            loco_icon.setImageDrawable(icon)
+        }
+    }
+
     private fun getSpinnerSelectionFromAddress(a : Int) : Int {
         // search for a matching spinner item
-        for (i in 0..(locoAddressStrings.size-1)) {
-            if ((locoAddressStrings.get(i)).equals(a.toString())) {
+        for (i in 0..(locoAddressStringList.size-1)) {
+            if ((locoAddressStringList.get(i)).equals(a.toString())) {
                 return i
             }
         }
@@ -292,7 +318,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         changeDirBtn.setON(LocoUtil.isForward())
 
         if (selLocoAddr != INVALID_INT) {
-            //speedBar.setSXSpeed(sxData[selLocoAddr])
             val speed = (sxData[selLocoAddr] and 0x1f)
             speedBar2.progress = speed
         }
@@ -311,11 +336,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     }
 
     private fun selectNewLoco(addr : Int) {
-        if( (addr <0) or (addr > SXMAX) ) return
+        if(!isUsableSXAddress(addr)) return
         selLocoAddr = addr
+        addNewLocoToAddressList(addr)
         MainApplication.addRelevantChan(selLocoAddr)
         sendQ.offer("R $selLocoAddr")
     }
+
     // assertion kept in case of rotation during execution of this code
     private fun setPowerAndConnectionIcon() {
         if (MainApplication.connectionIsAlive()) {
@@ -349,6 +376,89 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         }
     }
 
+    private fun saveLocoAddresses() {
+        Log.d(TAG, "saveLocoAddresses")
+        var list = ""
+        locoAddressList.sort()
+        for (addr in locoAddressList) {
+            if (!list.isBlank()) list += ","
+            list += addr.toString()
+        }
+        val prefs =
+            PreferenceManager.getDefaultSharedPreferences(this)
+        val editor = prefs.edit()
+        Log.d(TAG,"save list=$list")
+        editor.putString(KEY_LOCO_ADDR_LIST, list)
+        Log.d(TAG,"save selLoco=$selLocoAddr")
+        editor.putInt(KEY_LOCO_ADDR, selLocoAddr)// last used loco address
+        editor.apply()
+    }
+
+    private fun getLocoAddresses() {
+        val prefs =
+            PreferenceManager.getDefaultSharedPreferences(this)
+        var addrListString = prefs.getString(KEY_LOCO_ADDR_LIST, "" )
+        if (!isUsableSXAddress(selLocoAddr)) {
+            selLocoAddr = prefs.getInt(KEY_LOCO_ADDR, 40 )
+        }
+        if (addrListString.isBlank()) {
+            //TODO temp solution, replace by call to select-loco-address-dialog later
+            addrListString += selLocoAddr.toString()
+        }
+        if (DEBUG)
+            Log.d(TAG, "getLocoAddresses=$addrListString")
+
+        val addrStrings = addrListString.split(",")
+        //convert to Int
+        for (s in addrStrings) {
+            try {
+                val a = s.toInt()
+                if (!locoAddressList.contains(a)) {
+                    locoAddressList.add(a)
+                }
+            } catch (e : Exception) {
+                // should never happen
+                Log.e(TAG,"invalid string in getLocoAddresses s=$s - ${e.message}")
+            }
+        }
+
+        updateAddressSpinnerList()
+    }
+
+    private fun addNewLocoToAddressList(addr : Int) : Boolean {
+        Log.d(TAG,"addNewLocoToAddressList a=$addr")
+        if (!isUsableSXAddress(addr)) return false
+        if (locoAddressList.contains(addr)) return false
+
+        locoAddressList.add(addr)
+        locoAddressList.sort()
+        saveLocoAddresses()
+        updateAddressSpinnerList()
+        spinnerArrayAdapter.notifyDataSetChanged()
+        return true
+    }
+
+    private fun updateAddressSpinnerList() {
+        Log.d(TAG,"updateAddressSpinnerList")
+        if (locoAddressList.isEmpty()) getLocoAddresses()
+        locoAddressStringList.clear()
+        for (a in locoAddressList) {
+            locoAddressStringList.add(a.toString())
+        }
+        locoAddressStringList.add("+")  // always last entry: "+ add a new address"
+        // update spinner
+
+        val addressPos = getSpinnerSelectionFromAddress(selLocoAddr)
+        spinnerLocoAddress.setSelection(addressPos)
+        try {
+            selLocoAddr = (spinnerLocoAddress.getItemAtPosition(addressPos).toString()).toInt()
+        } catch (e : Exception) {
+            selLocoAddr = 40
+            spinnerLocoAddress.setSelection(getSpinnerSelectionFromAddress(40))  // TODO
+            Log.e(TAG, "could not convert spinner item to int value - using 40 as loco address")
+        }
+    }
+
     private fun shutdownSXClient() {
         Log.d(TAG, "MainActivity - shutting down SXnet Client.")
         client?.shutdown()
@@ -364,8 +474,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         }
         // reset data
         for (i in 0..SXMAX) sxData[i] = 0
-        relevantChans.clear()
-        relevantChans.add(selLocoAddr)
+        sendQ.clear()
+        MainApplication.addRelevantChan(selLocoAddr)
 
         val prefs = PreferenceManager
             .getDefaultSharedPreferences(this)
@@ -400,66 +510,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     }
 
 
-    private fun addressPickerDialog(type: Int) {
-        val dialogBuilder = AlertDialog.Builder(this)
-        val dialogView = this.layoutInflater.inflate(R.layout.select_address, null)
-        val numE = dialogView.findViewById<View>(R.id.numberPickerE) as NumberPicker
-        val numZ = dialogView.findViewById<View>(R.id.numberPickerZ) as NumberPicker
-        val numH = dialogView.findViewById<View>(R.id.numberPickerH) as NumberPicker
-        numE.minValue = 0
-        numE.maxValue = 9
-        numZ.minValue = 0
-        numZ.maxValue = 9
-        numH.minValue = 0
-        numH.maxValue = 1
-        dialogBuilder.setView(dialogView)
-        if (type == SELECT_LOCO_ADDRESS) {
-            if (selLocoAddr >= 100) {
-                numH.value = 1
-                numE.value = selLocoAddr % 10
-                numZ.value = (selLocoAddr - 100) / 10
-            } else {
-                numE.value = selLocoAddr % 10
-                numZ.value = selLocoAddr / 10
-                numH.value = 0
-            }
-            dialogBuilder.setTitle("Lok-Adresse auswählen")
-            dialogBuilder.setPositiveButton("Speichern") { dialog, _ ->
-                val a = numE.value + 10* numZ.value + 100 * numH.value
-                if (a > SXMAX_USED) {
-                    toast("Fehler Adresse muss kleiner oder gleich 106 sein")
-                } else {
-                    if (!locoAddressStrings.contains(a.toString())) {
-                        locoAddressStrings.add(a.toString())
-                        locoAddressStrings.sort()
-                        spinnerArrayAdapter.notifyDataSetChanged()
-                    }
-                    spAddress.setSelection(getSpinnerSelectionFromAddress(a))
-                    selectNewLoco(a)
-                }
-                dialog.cancel()
-            }
-        } else {
-            numH.value = 0
-            numE.value = 0
-            numZ.value = 8
-            dialogBuilder.setTitle("zus. Adresse auswählen")
-            dialogBuilder.setPositiveButton("Hinzufügen") { dialog, _ ->
-                val a = numE.value + 10* numZ.value + 100 * numH.value
-                if (a > SXMAX_USED) {
-                    toast("Fehler Adresse muss kleiner oder gleich 106 sein")
-                } else {
-                    MainApplication.addRelevantChan(a)
-                }
-                dialog.cancel()
-            }
+    private fun startLocoAddressPickerDialog() {
 
-        }
-        dialogBuilder.setNegativeButton("Zurück") { dialog, _ ->
-            dialog.cancel()
-        }
-        val b = dialogBuilder.create()
-        b.show()
+        val intent = Intent(this, SelectAddressDialog::class.java)
+        intent.action = "loco"
+        startActivityForResult(intent, PICK_LOCO_ADDRESS_REQUEST)
+
     }
 
 
@@ -493,19 +549,19 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     }
 
-    /** returns list of all 8 checkboxes for the 8 SX bits
+    /** returns list of 8 checkboxes for the 8 SX bits
      *
      */
     private fun checkBoxesList(v: View): List<CheckBox> {
-        var cb1 = v.find(R.id.checkBox1) as CheckBox   // bit 1
-        var cb2 = v.find(R.id.checkBox2) as CheckBox
-        var cb3 = v.find(R.id.checkBox3) as CheckBox
-        var cb4 = v.find(R.id.checkBox4) as CheckBox
-        var cb5 = v.find(R.id.checkBox5) as CheckBox
-        var cb6 = v.find(R.id.checkBox6) as CheckBox
-        var cb7 = v.find(R.id.checkBox7) as CheckBox
-        var cb8 = v.find(R.id.checkBox8) as CheckBox   // bit 8
-        return listOf(cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8)
+        return listOf(
+            v.find(R.id.checkBox1) as CheckBox,   // bit 1
+            v.find(R.id.checkBox2) as CheckBox,
+            v.find(R.id.checkBox3) as CheckBox,
+            v.find(R.id.checkBox4) as CheckBox,
+            v.find(R.id.checkBox5) as CheckBox,
+            v.find(R.id.checkBox6) as CheckBox,
+            v.find(R.id.checkBox7) as CheckBox,
+            v.find(R.id.checkBox8) as CheckBox)   // bit 8
     }
 
     /** edit a single byte in sxData array and send update to SXnet
