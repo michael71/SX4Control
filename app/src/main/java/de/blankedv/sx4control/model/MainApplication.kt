@@ -23,8 +23,6 @@ import java.util.concurrent.BlockingQueue
 class MainApplication : Application() {
 
 
-
-    //@SuppressLint("HandlerLeak")
     @SuppressLint("HandlerLeak")
     override fun onCreate() {
         super.onCreate()

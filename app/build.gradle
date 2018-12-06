@@ -10,8 +10,8 @@ android {
         applicationId "de.blankedv.sx4control"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 2
-        versionName "1.1 - 02 Dec 2018"
+        versionCode 3
+        versionName "1.2 - 05 Dec 2018"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
