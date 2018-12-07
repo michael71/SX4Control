@@ -2,6 +2,7 @@ package de.blankedv.sx4control.model
 
 import android.content.Context
 import android.os.Message
+import android.os.SystemClock
 import android.util.Log
 
 import java.io.BufferedReader
@@ -31,7 +32,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
     @Volatile
     private var clientTerminated: Boolean = false
     private var lastReceived: Long = 0
-    private var commAlive: Long = 0
+    private var lastConnErrorSent: Long = 0
 
     private var shutdownFlag: Boolean = false
     private var socket: Socket? = null
@@ -44,14 +45,18 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
         shuttingDown = false
         clientTerminated = false
         shutdownFlag = false
-        lastReceived = System.currentTimeMillis() + 5000  // initialize
-        commAlive = System.currentTimeMillis() + 5000  // initialize
+        lastReceived = SystemClock.elapsedRealtime() + 5000  // initialize
+        name = "sxnetClient"
     }
 
     fun shutdown() {
         if (DEBUG) Log.d(TAG, "SXnetClientThread shutdown called.")
         shutdownFlag = true
         this.interrupt()
+    }
+
+    fun isConnected() :Boolean {
+        return ((socket != null) && (!shutdownFlag) && ((SystemClock.elapsedRealtime() - lastReceived) <= 10 * 1000) )
     }
 
     override fun run() {
@@ -72,8 +77,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                         handleMsgFromServer(cmd.trim { it <= ' ' }.toUpperCase())
                         // sends feedback message  XL 'addr' 'data' (or INVALID_INT) back to mobile device
                     }
-                    lastReceived = System.currentTimeMillis()
-                    commAlive = System.currentTimeMillis()
+                    lastReceived = SystemClock.elapsedRealtime()
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "ERROR: reading from socket - " + e.message)
@@ -92,18 +96,20 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
 
             }
 
-            // send a command at least every 10 secs
-            if (System.currentTimeMillis() - lastReceived > 10 * 1000) {
+            // send ERROR to UI if we didn't receive a message in the last 10 secs
+            // but send this message only once per 20 secs
+            if ( (SystemClock.elapsedRealtime() - lastReceived > 10 * 1000) and
+                ((SystemClock.elapsedRealtime() - lastConnErrorSent) > 20 * 1000)) {
                 Log.e(TAG, "SXnetClientThread - connection lost? ")
                 val m = Message.obtain()
                 m.what = TYPE_ERROR_MSG
                 m.obj = "disconnected from SX4 server"
                 handler!!.sendMessage(m)  // send SX data to UI Thread via Message
-                lastReceived = System.currentTimeMillis()  // send this msg only every 10 secs
+                lastConnErrorSent = SystemClock.elapsedRealtime()  // send this msg only every 10 secs
             }
 
             // automatic shutdown after 60 secs without message
-            //if (System.currentTimeMillis() - commAlive > 60 * 1000) {
+            //if (SystemClock.elapsedRealtime() - commAlive > 60 * 1000) {
             //    shutdownFlag = true
             //}
         }
@@ -141,7 +147,7 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
                 )
             )
             connString = `in`!!.readLine()
-            lastReceived = System.currentTimeMillis()
+            lastReceived = SystemClock.elapsedRealtime()
 
             if (DEBUG) Log.d(TAG, "SXnet connected to: $connString")
 

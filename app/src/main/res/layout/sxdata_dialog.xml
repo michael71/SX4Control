@@ -14,6 +14,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="addrData"
+            android:textAlignment="center"
             android:id="@+id/tvEditAddress"
             android:textSize="20dp" />
     <TextView
@@ -31,13 +32,13 @@
         <LinearLayout android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       android:orientation="vertical"
+                      android:paddingLeft="10dp"
                       android:layout_weight="1">
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:textAlignment="center"
-                    android:text="1"/>
+                    android:text="  1"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -54,7 +55,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="2"/>
+                      android:text="  2"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -70,8 +71,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text=" 3"/>
+                    android:gravity="center"
+                    android:text="  3"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -87,8 +88,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text=" 4"/>
+                    android:gravity="center"
+                    android:text="  4"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -104,8 +105,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text=" 5"/>
+                    android:gravity="center"
+                    android:text="  5"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -121,8 +122,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text=" 6"/>
+                    android:gravity="center"
+                    android:text="  6"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -138,8 +139,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text=" 7"/>
+                    android:gravity="center"
+                    android:text="  7"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"
@@ -156,7 +157,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text=" 8"/>
+                    android:text="  8"/>
             <CheckBox
                     android:text=""
                     android:layout_width="wrap_content"

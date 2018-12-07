@@ -1,6 +1,7 @@
 package de.blankedv.sx4control.util
 
 import android.graphics.Bitmap
+import android.os.SystemClock
 import android.util.Log
 import de.blankedv.sx4control.model.MainApplication.Companion.selLocoAddr
 import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
@@ -18,13 +19,13 @@ class LocoUtil {
         private var lastSentTime = 0L
         private var locoBitmap: Bitmap? = null
 
-        fun updateLoco() {
+        private fun updateLoco() {
             var toSend = sxData[selLocoAddr]
             if ((lastSX != toSend)
-                or ((System.currentTimeMillis() - lastSentTime) > 1000) ) {
+                or ((SystemClock.elapsedRealtime() - lastSentTime) > 1000) ) {
                 sendQ.offer("S $selLocoAddr $toSend")
                 lastSX = toSend
-                lastSentTime = System.currentTimeMillis()
+                lastSentTime = SystemClock.elapsedRealtime()
             }
         }
 

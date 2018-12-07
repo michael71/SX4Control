@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">SX4Control</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="app_name" translatable="false">SX4Control</string>
+    <string name="action_settings" translatable="false">Settings</string>
+    <string name="title_activity_settings" translatable="false">Settings</string>
     <string name="action_exit" translatable="false">Exit Program</string>
 
 
@@ -30,5 +30,9 @@
     <string name="power" translatable="false">Power</string>
     <string name="connect" translatable="false">Connect</string>
     <string name="set" translatable="false">Set Value</string>
-    <string name="title_activity_select_address_dialog">SelectAddressDialog</string>
+    <string name="title_activity_select_address_dialog" translatable="false">SelectAddressDialog</string>
+    <string name="default_notification_channel_id" translatable="false">sx4control_default_channel</string>
+    <string name="notification_title">SX4Control running</string>
+    <string name="notification_text">re-open SX4Control</string>
+
 </resources>

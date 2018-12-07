@@ -76,3 +76,5 @@ const val TYPE_SX_MSG = 2
 const val TYPE_ERROR_MSG = 3
 const val TYPE_POWER_MSG = 8
 const val TYPE_CONNECTION_MSG = 9
+const val TYPE_RESTART_COMM_REQUEST = 10
+const val TYPE_FINISH_COMM_REQUEST = 11

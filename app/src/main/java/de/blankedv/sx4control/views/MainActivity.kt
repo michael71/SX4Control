@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
+import android.os.Message
+import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity;
@@ -17,12 +19,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import de.blankedv.sx4control.model.MainApplication.Companion.relevantChans
-import de.blankedv.sx4control.model.MainApplication.Companion.globalPower
-import de.blankedv.sx4control.model.MainApplication.Companion.pauseTimer
-import de.blankedv.sx4control.model.MainApplication.Companion.selLocoAddr
-import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
-import de.blankedv.sx4control.model.MainApplication.Companion.sxData
+
 import org.jetbrains.anko.*
 import android.support.v7.widget.GridLayoutManager
 import android.view.LayoutInflater
@@ -33,7 +30,15 @@ import de.blankedv.sx4control.controls.FunctionButton
 import de.blankedv.sx4control.util.LocoUtil
 import de.blankedv.sx4control.model.*
 import android.widget.TextView
+
+import de.blankedv.sx4control.model.MainApplication.Companion.relevantChans
+import de.blankedv.sx4control.model.MainApplication.Companion.globalPower
+import de.blankedv.sx4control.model.MainApplication.Companion.selLocoAddr
+import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
+import de.blankedv.sx4control.model.MainApplication.Companion.sxData
 import de.blankedv.sx4control.model.MainApplication.Companion.isUsableSXAddress
+import de.blankedv.sx4control.model.MainApplication.Companion.lastSXMessageFromClient
+
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     NumberPicker.OnValueChangeListener {
@@ -54,7 +59,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private var mHandler = Handler()  // used for UI Update timer
     private var mCounter = 0
 
-    private var client: SXnetClientThread? = null
 
     private var sxDataToEdit = INVALID_INT     // used by edit-data-dialog and by onClickCheckbox functions
     var tvData: TextView? = null       // used by edit-data-dialog and by onClickCheckbox functions
@@ -64,6 +68,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private var locoAddressList = ArrayList<Int>(10)
     private var locoAddressStringList = ArrayList<String>(10)
     private lateinit var spinnerArrayAdapter : ArrayAdapter<String>
+
+    private var activityInShutdown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,8 +128,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         exitProgramAlert.setMessage("Programm beenden?")
             .setCancelable(false)
             .setPositiveButton("Ja") { _, _ ->
-                shutdownSXClient()
-                mySleep(100)
+                // send shutdown message
+                activityInShutdown = true
+                val m = Message.obtain()
+                m.what = TYPE_FINISH_COMM_REQUEST
+                MainApplication.handler!!.sendMessage(m)  // send SX data to UI Thread via Message
+                (application as MainApplication).removeNotification()
+                SystemClock.sleep(500)
                 finish()
             }
             .setNegativeButton("Nein") { dialog, _ -> dialog.cancel() }
@@ -180,6 +191,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         mOptionsMenu = menu
+        Log.d(TAG,"onCreateOptonsMenu")
         return true
     }
 
@@ -203,8 +215,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 startActivity(intent)
             }
             R.id.action_reconnect, R.id.action_connect -> {
-                startSXNetCommunication()
-                pauseTimer = false
+                requestRestartSXnetCommunication()
                 toast("trying reconnect")
             }
             R.id.action_power -> {
@@ -280,32 +291,36 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         Log.d(TAG, "MainActivcity - onPause")
         // store current loco data + the complete locoList
         saveLocoAddresses()
-
-        pauseTimer = true
+        if (!activityInShutdown ) (application as MainApplication).addNotification(this.intent)
     }
 
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "MainActivity - onResume")
-
+        (application as MainApplication).removeNotification()
         getLocoAddresses()
         loadLocoBitmap(selLocoAddr)
         updateAddressSpinnerList()
         spinnerArrayAdapter.notifyDataSetChanged()
+        requestRestartSXnetCommunication()
 
         MainApplication.addRelevantChan(selLocoAddr)
 
-        startSXNetCommunication()
         sendQ.offer("R $selLocoAddr")    // sendQ was cleared when starting sxnet-comm
 
-        mHandler.postDelayed({ updateUI() }, 100)
-        pauseTimer = false
+        mHandler.postDelayed({ updateUI() }, 500)
     }
 
     override fun onValueChange(picker: NumberPicker, oldVal: Int, newVal: Int) {
 
         Log.d("address value is", "" + newVal)
 
+    }
+
+    private fun requestRestartSXnetCommunication() {
+        val m = Message.obtain()
+        m.what = TYPE_RESTART_COMM_REQUEST
+        MainApplication.handler!!.sendMessage(m)
     }
 
     private fun loadLocoBitmap(addr : Int) {
@@ -334,15 +349,15 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
     private fun updateUI() {
         mCounter++
 
+        lampBtn.setON(LocoUtil.isLampOn())
+        functionBtn.setON(LocoUtil.isFunctionOn())
+        changeDirBtn.setON(LocoUtil.isForward())
+
         // the actionBar icons are NOT updated via binding, because
         // "At the moment, data binding is only for layout resources, not menu resources" (google)
         // and the implementation to "work around" this limitation looks very complicated, see
         // https://stackoverflow.com/questions/38660735/how-bind-android-databinding-to-menu
-
         setPowerAndConnectionIcon()
-        lampBtn.setON(LocoUtil.isLampOn())
-        functionBtn.setON(LocoUtil.isFunctionOn())
-        changeDirBtn.setON(LocoUtil.isForward())
 
         if (selLocoAddr != INVALID_INT) {
             val speed = (sxData[selLocoAddr] and 0x1f)
@@ -373,7 +388,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
 
     // assertion kept in case of rotation during execution of this code
     private fun setPowerAndConnectionIcon() {
-        if (MainApplication.connectionIsAlive()) {
+        val sxnetAlive =
+            ((SystemClock.elapsedRealtime() - lastSXMessageFromClient) < 10 * 1000)
+        if (sxnetAlive) {
             mOptionsMenu!!.findItem(R.id.action_connect)?.setIcon(R.drawable.commok)
             when (globalPower) {
                 false -> {
@@ -487,33 +504,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         }
     }
 
-    private fun shutdownSXClient() {
-        Log.d(TAG, "MainActivity - shutting down SXnet Client.")
-        client?.shutdown()
-        client?.disconnectContext()
-        client = null
-    }
-
-    private fun startSXNetCommunication() {
-        Log.d(TAG, "MainActivity - startSXNetCommunication.")
-        if (client != null) {
-            client?.shutdown()
-            mySleep(100)
-        }
-        // reset data
-        for (i in 0..SXMAX) sxData[i] = 0
-        sendQ.clear()
-        MainApplication.addRelevantChan(selLocoAddr)
-
-        val prefs = PreferenceManager
-            .getDefaultSharedPreferences(this)
-        val ip = prefs.getString(KEY_IP, SXNET_START_IP)
-
-        if (DEBUG) Log.d(TAG, "connecting to " + ip!!)
-        client = SXnetClientThread(this, ip!!, SXNET_PORT)
-        client?.start()
-
-    }
 
     private fun togglePower() {
         val prefs = PreferenceManager
@@ -524,7 +514,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 globalPower = true
             } else {
                 sendQ.offer("SETPOWER 0")
-                globalPower = true
+                globalPower = false
             }
         } else {
             toast("Power Kontrolle nicht erlaubt (siehe Settings)")
