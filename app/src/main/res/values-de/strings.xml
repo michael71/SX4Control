@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings" >Einstellungen</string>
+    <string name="title_activity_settings" >Einstellungen</string>
+    <string name="action_exit">Programm beenden</string>
+    <string name="unknown" >unbekannt</string>
+    <string name="versionUnknown" >Version unbekannt</string>
+    <string name="aboutString" >SX4 Control/Lokregler für Android - zur Verwendung mit dem SX4
+        Programm
+    </string>
+    <string name="cancel" >Zurück</string>
+    <string name="action_about" >Info / Hilfe</string>
+    <string name="action_reconnect" >Erneut verbinden</string>
+    <string name="sxnet_server_settings" >SXnet-Server Einstellungen</string>
+    <string name="enable_power_control" >Gleisspannungs-Kontrolle</string>
+    <string name="direction" >Richtung</string>
+    <string name="loco_address" >Lok Adresse</string>
+    <string name="noLocoSelected" >Keine Lok</string>
+    <string name="connect" >Verbinden</string>
+    <string name="set" >Wert setzen</string>
+    <string name="title_activity_select_address_dialog" >Adress-Auswahl-Dialog</string>
+    <string name="monitor_add_address">weitere Adresse überwachen</string>
+    <string name="server_address">SXnet Server Adresse (IP)</string>
+    <string name="power_control_not_allowed">"Power Kontrolle nicht erlaubt (siehe Einstellungen)"</string>
+    <string name="not_connected">im Moment NICHT mit einem SXnet Server verbunden</string>
+    <string name="connected">verbunden mit: </string>
+</resources>

@@ -1,38 +1,40 @@
 <resources>
     <string name="app_name" translatable="false">SX4Control</string>
-    <string name="action_settings" translatable="false">Settings</string>
-    <string name="title_activity_settings" translatable="false">Settings</string>
-    <string name="action_exit" translatable="false">Exit Program</string>
-
-
+    <string name="action_settings" >Settings</string>
+    <string name="title_activity_settings" >Settings</string>
+    <string name="action_exit">Exit Program</string>
     <string name="ip_address_of_server" translatable="false">IP Adresse des SXnet Servers</string>
-    <string name="unknown" translatable="false">unknown</string>
-    <string name="versionUnknown" translatable="false">version unknown</string>
-    <string name="copyrightString" translatable="false">(c) 2017-2018 Michael Blank - opensx.net</string>
+    <string name="unknown" >unknown</string>
+    <string name="versionUnknown" >version unknown</string>
+    <string name="copyrightString" translatable="false">(c) 2017-2019 Michael Blank - opensx.net</string>
     <string name="moreInfoString" translatable="false">for more info see: https://opensx.net</string>
-    <string name="aboutString" translatable="false">SX4 Control/Throttle für Android - zur Verwendung mit dem SX4
-        Programm
+    <string name="licenceString" translatable="false">Licence: GPL v3.0 \nhttps://www.gnu.org/licenses/gpl-3.0.en.html</string>
+    <string name="aboutString" >SX4 Control/Throttle für Android - zur Verwendung mit dem SX4 Programm
     </string>
-    <string name="cancel" translatable="false">Cancel</string>
-    <string name="action_about" translatable="false">About / Info</string>
-    <string name="action_reconnect" translatable="false">Reconnect to Server</string>
-    <string name="title_about_info" translatable="false">About / Info</string>
-    <string name="sxnet_server_settings" translatable="false">SXnet Server Settings</string>
+    <string name="cancel" >Cancel</string>
+    <string name="action_about" >Info / Help</string>
+    <string name="action_reconnect" >Reconnect to Server</string>
+    <string name="title_about_info" translatable="false">Info / Help</string>
+    <string name="sxnet_server_settings" >SXnet Server Settings</string>
     <string name="stop_loco" translatable="false">STOP</string>
-    <string name="enable_power_control" translatable="false">Enable Global Power On/Off Control</string>
+    <string name="enable_power_control" >Enable Global Power On/Off Control</string>
     <string name="f0" translatable="false">F0</string>
     <string name="f1" translatable="false">F1</string>
     <string name="locoicon" translatable="false">locoIcon</string>
-    <string name="direction" translatable="false">Direction</string>
+    <string name="direction" >Direction</string>
     <string name="addressValue" translatable="false">A=??</string>
-    <string name="loco_address" translatable="false">Loco Address</string>
-    <string name="noLocoSelected" translatable="false">No Loco</string>
+    <string name="loco_address" >Loco Address</string>
+    <string name="noLocoSelected" >No Loco</string>
     <string name="power" translatable="false">Power</string>
-    <string name="connect" translatable="false">Connect</string>
-    <string name="set" translatable="false">Set Value</string>
-    <string name="title_activity_select_address_dialog" translatable="false">SelectAddressDialog</string>
+    <string name="connect" >Connect</string>
+    <string name="set" >Set Value</string>
+    <string name="title_activity_select_address_dialog" >SelectAddressDialog</string>
     <string name="default_notification_channel_id" translatable="false">sx4control_default_channel</string>
-    <string name="notification_title">SX4Control running</string>
-    <string name="notification_text">re-open SX4Control</string>
-
+    <string name="notification_title" translatable="false">SX4Control running</string>
+    <string name="notification_text" translatable="false">re-open SX4Control</string>
+    <string name="monitor_add_address">Monitor add. Address</string>
+    <string name="server_address">SXnet server address (ip)</string>
+    <string name="power_control_not_allowed">"Power control not allowed (see Settings)"</string>
+    <string name="not_connected">currently not connected to any SXnet server</string>
+    <string name="connected">connected to: </string>
 </resources>

@@ -68,9 +68,16 @@ class MainApplication : Application() {
                     }
 
                     TYPE_SX_MSG -> {
-                        sxData[chan] = data
-                        if (data != 0) addRelevantChan(chan)
-                        //Log.d(TAG, "rec sxMsg a=$chan d=$data")
+                        if ((chan != selLocoAddr) or
+                            ((SystemClock.currentThreadTimeMillis() - waitForLocoFeedback) < 500)  ){
+                            // ignore loco feedback, if we are controlling the loco - except for the first
+                            // feedback message
+                            sxData[chan] = data
+                            if (data != 0) addRelevantChan(chan)
+                            //Log.d(TAG, "rec sxMsg a=$chan d=$data")
+                        } else {
+                            Log.d(TAG,"rec loco msg ignored.")
+                        }
                         lastSXMessageFromClient = SystemClock.elapsedRealtime()
                     }
 
@@ -205,6 +212,8 @@ class MainApplication : Application() {
         var selLocoAddr = INVALID_INT
         @Volatile
         var lastSXMessageFromClient = 0L
+        @Volatile
+        var waitForLocoFeedback = 0L
 
 
         fun addRelevantChan ( chan  : Int) {

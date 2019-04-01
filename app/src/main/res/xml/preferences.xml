@@ -3,12 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <EditTextPreference
-        android:name="SXnet server address"
+        android:name="@string/server_address"
         android:defaultValue="192.168.178.29"
         android:key="ipPref"
         android:digits="0123456789."
         android:summary="@string/ip_address_of_server"
-        android:title="SXnet server address" />
+        android:title="@string/server_address" />
     <CheckBoxPreference
             android:defaultValue="false"
             android:key="enablePowerControlPref"

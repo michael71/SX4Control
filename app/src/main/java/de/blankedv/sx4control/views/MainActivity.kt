@@ -38,6 +38,7 @@ import de.blankedv.sx4control.model.MainApplication.Companion.sendQ
 import de.blankedv.sx4control.model.MainApplication.Companion.sxData
 import de.blankedv.sx4control.model.MainApplication.Companion.isUsableSXAddress
 import de.blankedv.sx4control.model.MainApplication.Companion.lastSXMessageFromClient
+import de.blankedv.sx4control.model.MainApplication.Companion.waitForLocoFeedback
 
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
@@ -305,7 +306,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         requestRestartSXnetCommunication()
 
         MainApplication.addRelevantChan(selLocoAddr)
-
+        waitForLocoFeedback = SystemClock.currentThreadTimeMillis()
         sendQ.offer("R $selLocoAddr")    // sendQ was cleared when starting sxnet-comm
 
         mHandler.postDelayed({ updateUI() }, 500)
@@ -383,6 +384,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
         loadLocoBitmap(selLocoAddr)
         addNewLocoToAddressList(addr)
         MainApplication.addRelevantChan(selLocoAddr)
+        waitForLocoFeedback = SystemClock.currentThreadTimeMillis()
         sendQ.offer("R $selLocoAddr")
     }
 
@@ -517,7 +519,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener,
                 globalPower = false
             }
         } else {
-            toast("Power Kontrolle nicht erlaubt (siehe Settings)")
+            toast(getString(R.string.power_control_not_allowed))
         }
     }
 

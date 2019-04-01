@@ -8,10 +8,10 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "de.blankedv.sx4control"
-        minSdkVersion 16
+        minSdkVersion 15
         targetSdkVersion 28
-        versionCode 5
-        versionName "1.31 - 07 Dec 2018"
+        versionCode 8
+        versionName "1.33 - 01 April 2019"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -21,6 +21,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
 }
 
 dependencies {

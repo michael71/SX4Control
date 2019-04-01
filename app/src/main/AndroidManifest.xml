@@ -56,7 +56,6 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="de.blankedv.sx4control.views.MainActivity"/>
         </activity>
-        -->
         <activity
                 android:theme="@android:style/Theme.Holo.Dialog"
                 android:name=".views.SelectAddressDialog"

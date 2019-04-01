@@ -4,7 +4,7 @@
 
 package de.blankedv.sx4control.model
 
-const val DEBUG = true // false for release-apk
+const val DEBUG = false // false for release-apk
 const val TAG = "SX4Control"
 
 const val INVALID_INT = -1
