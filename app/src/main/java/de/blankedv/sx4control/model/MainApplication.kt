@@ -58,7 +58,12 @@ class MainApplication : Application() {
 
         val mySSID = getNetworkSsid(this)
         Log.d(TAG, "connecting via WIFI, SSID=$mySSID")
-        routeNetworkRequestsThroughWifi(mySSID)
+        if (mySSID.isEmpty()) {
+            Log.e(TAG, "no SSID found, disabling special TCP routing")
+        } else {
+            Log.d(TAG, "enabled special TCP routing")
+            routeNetworkRequestsThroughWifi(mySSID)
+        }
 
         // handler for receiving sxnet/loconet messages
         // this must be done in the "Application" (not activity) to keep track of changes
