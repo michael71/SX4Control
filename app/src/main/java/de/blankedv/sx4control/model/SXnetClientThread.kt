@@ -1,8 +1,17 @@
 package de.blankedv.sx4control.model
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.SupplicantState
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Message
 import android.os.SystemClock
+import android.support.annotation.RequiresApi
+import android.support.v4.content.ContextCompat.getSystemService
 import android.util.Log
 
 import java.io.BufferedReader
@@ -259,6 +268,8 @@ class SXnetClientThread(private var context: Context?, private val ip: String, p
 
         return data!!
     }
+
+
 
     internal fun getChannelFromString(s: String): Int {
         var channel: Int? = ERROR

@@ -7,12 +7,20 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.SupplicantState
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Handler
 import android.os.Message
 import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.provider.Settings
+import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import de.blankedv.sx4control.R
@@ -26,11 +34,15 @@ import java.util.concurrent.BlockingQueue
 /* holds all data which need to be persistent during configuration changes
  * like sxData, globalPower and selLocoAddr
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class MainApplication : Application() {
 
-
-
     private var client: SXnetClientThread? = null
+
+    private var mConnectivityManager: ConnectivityManager? = null
+    private var mNetworkCallback: ConnectivityManager.NetworkCallback? = null
+    // see https://stackoverflow.com/questions/36653126/send-request-over-wifi-without-connection-even-if-mobile-data-is-on-with-conn/51469732#51469732
+
 
     @SuppressLint("HandlerLeak")
     override fun onCreate() {
@@ -44,6 +56,9 @@ class MainApplication : Application() {
         Log.d(TAG, "MainApplication - androidDeviceID=$myAndroidDeviceId")
         // scaling, zoom prefs are loaded from LanbahnPanelActivity
 
+        val mySSID = getNetworkSsid(this)
+        Log.d(TAG, "connecting via WIFI, SSID=$mySSID")
+        routeNetworkRequestsThroughWifi(mySSID)
 
         // handler for receiving sxnet/loconet messages
         // this must be done in the "Application" (not activity) to keep track of changes
@@ -155,6 +170,101 @@ class MainApplication : Application() {
     private fun isConnectionAlive() : Boolean {
         return ((SystemClock.elapsedRealtime() - lastSXMessageFromClient) < 10 * 1000)
     }
+
+    /**
+     * This method sets a network callback that is listening for network changes and once is
+     * connected to the desired WiFi network with the given SSID it will bind to that network.
+     *
+     * Note: requires android.permission.INTERNET and android.permission.CHANGE_NETWORK_STATE in
+     * the manifest.
+     *
+     * @param ssid The name of the WiFi network you want to route your requests
+     */
+    private fun routeNetworkRequestsThroughWifi(ssid: String) {
+        mConnectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        // ensure prior network callback is invalidated
+        unregisterNetworkCallback(mNetworkCallback)
+
+        // new NetworkRequest with WiFi transport type
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .build()
+
+        // network callback to listen for network changes
+        mNetworkCallback = object : ConnectivityManager.NetworkCallback() {
+
+            // on new network ready to use
+            override fun onAvailable(network: Network) {
+
+                if (getNetworkSsid(applicationContext).equals(ssid, ignoreCase = false)) {
+                    releaseNetworkRoute()
+                    createNetworkRoute(network)
+
+                } else {
+                    releaseNetworkRoute()
+                }
+            }
+        }
+        mConnectivityManager?.requestNetwork(request, mNetworkCallback)
+    }
+
+    private fun getNetworkSsid(context: Context?): String {
+        // WiFiManager must use application context (not activity context) otherwise a memory leak can occur
+        val mWifiManager = context?.applicationContext?.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val wifiInfo: WifiInfo? = mWifiManager.connectionInfo
+        if (wifiInfo?.supplicantState == SupplicantState.COMPLETED) {
+            return wifiInfo.ssid.removeSurrounding("\"")
+        }
+        return ""
+    }
+
+    private fun unregisterNetworkCallback(networkCallback: ConnectivityManager.NetworkCallback?) {
+        if (networkCallback != null) {
+            try {
+                mConnectivityManager?.unregisterNetworkCallback(networkCallback)
+
+            } catch (ignore: Exception) {
+            } finally {
+                mNetworkCallback = null
+            }
+        }
+    }
+
+    private fun createNetworkRoute(network: Network): Boolean? {
+        var processBoundToNetwork: Boolean? = false
+        when {
+            // 23 = Marshmallow
+            Build.VERSION.SDK_INT >= 23 -> {
+                processBoundToNetwork = mConnectivityManager?.bindProcessToNetwork(network)
+                Log.d(TAG,"SDK >= 23, bindingToNetwork")
+            }
+
+            // 21..22 = Lollipop
+            Build.VERSION.SDK_INT in 21..22 -> {
+                processBoundToNetwork = ConnectivityManager.setProcessDefaultNetwork(network)
+                Log.d(TAG,"SDK < 23, setNetwork")
+            }
+        }
+        return processBoundToNetwork
+    }
+
+    private fun releaseNetworkRoute(): Boolean? {
+        var processBoundToNetwork: Boolean? = false
+        when {
+            // 23 = Marshmallow
+            Build.VERSION.SDK_INT >= 23 -> {    // 6.0 == 23
+                processBoundToNetwork = mConnectivityManager?.bindProcessToNetwork(null)
+            }
+
+            // 21..22 = Lollipop
+            Build.VERSION.SDK_INT in 21..22 -> {    // 5.1.x == 22
+                processBoundToNetwork = ConnectivityManager.setProcessDefaultNetwork(null)
+            }
+        }
+        return processBoundToNetwork
+    }
+
 
     /**
      * Display OnGoing Notification that indicates Network Thread is still Running.
