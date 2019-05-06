@@ -54,7 +54,6 @@ class MainApplication : Application() {
             Settings.Secure.getString(applicationContext.contentResolver, Settings.Secure.ANDROID_ID)
 
         Log.d(TAG, "MainApplication - androidDeviceID=$myAndroidDeviceId")
-        // scaling, zoom prefs are loaded from LanbahnPanelActivity
 
         val mySSID = getNetworkSsid(this)
         Log.d(TAG, "connecting via WIFI, SSID=$mySSID")
